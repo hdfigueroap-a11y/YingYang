@@ -28,7 +28,7 @@ function defaultStart() {
 export function useWorkBlockScheduler() {
   const [scheduling, setScheduling] = useState(null); // id del assignment en proceso
   const [pendingItem, setPendingItem] = useState(null); // { assignment, durationMin }
-  const [pickerDate, setPickerDate] = useState(new Date());
+  const [initialDate, setInitialDate] = useState(new Date()); // solo para sembrar el modal al abrirlo
   const [showIosPicker, setShowIosPicker] = useState(false);
 
   function scheduleWorkBlock(assignment) {
@@ -57,7 +57,7 @@ export function useWorkBlockScheduler() {
     const initial = defaultStart();
 
     setPendingItem({ assignment, durationMin });
-    setPickerDate(initial);
+    setInitialDate(initial);
 
     if (Platform.OS === 'android') {
       openAndroidPicker(
@@ -70,13 +70,9 @@ export function useWorkBlockScheduler() {
     }
   }
 
-  function handleIosPickerChange(event, date) {
-    if (date) setPickerDate(date);
-  }
-
-  function confirmIosPicker() {
+  function confirmIosPicker(finalDate) {
     setShowIosPicker(false);
-    createWorkBlock(pendingItem.assignment, pendingItem.durationMin, pickerDate);
+    createWorkBlock(pendingItem.assignment, pendingItem.durationMin, finalDate);
   }
 
   function cancelIosPicker() {
@@ -113,10 +109,9 @@ export function useWorkBlockScheduler() {
   return {
     scheduling,
     pendingItem,
-    pickerDate,
+    initialDate,
     showIosPicker,
     scheduleWorkBlock,
-    handleIosPickerChange,
     confirmIosPicker,
     cancelIosPicker,
   };

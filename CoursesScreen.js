@@ -127,8 +127,7 @@ export default function CoursesScreen() {
         <SchedulePickerModal
           visible={scheduler.showIosPicker}
           label={scheduler.pendingItem ? `¿Cuándo empiezas "${scheduler.pendingItem.assignment?.name}"?` : ''}
-          date={scheduler.pickerDate}
-          onChange={scheduler.handleIosPickerChange}
+          initialDate={scheduler.initialDate}
           onConfirm={scheduler.confirmIosPicker}
           onCancel={scheduler.cancelIosPicker}
         />

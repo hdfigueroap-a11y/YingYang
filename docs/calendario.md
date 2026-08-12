@@ -24,8 +24,7 @@ eventos directo en el calendario "por defecto" configurado en el iPhone
 `schedulePicker.js` — selector de fecha/hora reutilizable:
 - **Android:** diálogo nativo encadenado fecha→hora vía `openAndroidPicker()`
   (el propio diálogo de fecha de Android ya se ve como calendario mensual).
-- **iOS:** `<SchedulePickerModal>`, controlado por estado ya que no existe
-  diálogo nativo equivalente. Muestra un calendario mensual real
+- **iOS:** `<SchedulePickerModal>`. Muestra un calendario mensual real
   (`display="inline"` de `@react-native-community/datetimepicker`, sin
   necesidad de ninguna librería nueva) para la fecha, un spinner para la hora,
   y debajo la lista de eventos que ya existen ese día en el Calendario del
@@ -34,6 +33,24 @@ eventos directo en el calendario "por defecto" configurado en el iPhone
   encabezado mes/año para escribir la fecha con teclado numérico; el modal
   está envuelto en `KeyboardAvoidingView` para que ese teclado no tape el
   spinner de hora ni los botones de confirmar/cancelar.
+  - **Día y hora son estado local del modal**, no un valor controlado desde
+    el padre (`date`+`onChange`) que se reconstruye en cada cambio. La
+    primera versión combinaba ambos en un solo `Date` y lo mandaba de vuelta
+    al padre en cada cambio de cualquiera de los dos pickers — como ambos
+    `DateTimePicker` (fecha y hora) quedaban controlados por ese mismo valor
+    combinado, cambiar uno terminaba pisando el cambio del otro en el
+    siguiente render, y la fecha parecía "atascada" en el valor inicial. Se
+    corrigió con dos estados independientes (`day`, `time`) dentro del
+    propio modal; `initialDate` solo siembra el valor la primera vez que se
+    abre, y `onConfirm(fecha)` recién arma el `Date` final al confirmar.
+  - **`themeVariant="light"`** en ambos `DateTimePicker` (fecha y hora).
+    Sin esto, el picker sigue el modo claro/oscuro del sistema del iPhone —
+    con el teléfono en modo oscuro, pintaba los números en blanco sobre el
+    fondo claro del modal (esta app no tiene modo oscuro implementado),
+    haciéndolos invisibles. Forzarlo a claro los mantiene legibles siempre.
+  - **`style={{ width: '100%' }}`** en ambos `DateTimePicker`. El calendario
+    en modo `inline` no ocupa todo el ancho disponible por sí solo y dejaba
+    un espacio vacío a la derecha del modal.
 
 Usado directamente por `CalendarScreen.js`, y también por el hook
 `useWorkBlockScheduler.js` (que a su vez comparten `TasksScreen.js` y

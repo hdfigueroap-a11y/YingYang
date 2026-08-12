@@ -35,7 +35,7 @@ export default function CalendarScreen() {
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [creating, setCreating] = useState(null);
   const [pendingBlock, setPendingBlock] = useState(null); // bloque esperando fecha/hora
-  const [pickerDate, setPickerDate] = useState(new Date());
+  const [initialDate, setInitialDate] = useState(new Date()); // solo para sembrar el modal al abrirlo
   const [showIosPicker, setShowIosPicker] = useState(false);
 
   useEffect(() => {
@@ -76,7 +76,7 @@ export default function CalendarScreen() {
     const initial = new Date();
     initial.setMinutes(initial.getMinutes() + 5);
     setPendingBlock(block);
-    setPickerDate(initial);
+    setInitialDate(initial);
 
     if (Platform.OS === 'android') {
       openAndroidPicker(
@@ -89,13 +89,9 @@ export default function CalendarScreen() {
     }
   }
 
-  function handleIosPickerChange(event, date) {
-    if (date) setPickerDate(date);
-  }
-
-  function confirmIosPicker() {
+  function confirmIosPicker(finalDate) {
     setShowIosPicker(false);
-    createBlockEvent(pendingBlock, pickerDate);
+    createBlockEvent(pendingBlock, finalDate);
   }
 
   function cancelIosPicker() {
@@ -219,8 +215,7 @@ export default function CalendarScreen() {
       <SchedulePickerModal
         visible={showIosPicker}
         label={pendingBlock ? `¿Cuándo empieza "${pendingBlock.title}"?` : ''}
-        date={pickerDate}
-        onChange={handleIosPickerChange}
+        initialDate={initialDate}
         onConfirm={confirmIosPicker}
         onCancel={cancelIosPicker}
       />

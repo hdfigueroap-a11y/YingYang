@@ -1,11 +1,28 @@
 // schedulePicker.js
-// Selector de fecha/hora reutilizable entre CalendarScreen y TasksScreen.
-// En Android abre el diálogo nativo (fecha y luego hora, encadenados) — el
-// propio diálogo de fecha de Android ya se muestra como calendario mensual.
-// En iOS no hay diálogo nativo equivalente, así que se expone
-// <SchedulePickerModal>: calendario mensual (display="inline") + hora, y
-// debajo la lista de eventos que ya existen ese día en el Calendario del
+// Selector de fecha/hora reutilizable entre CalendarScreen, TasksScreen y
+// CoursesScreen. En Android abre el diálogo nativo (fecha y luego hora,
+// encadenados) — el propio diálogo de fecha de Android ya se muestra como
+// calendario mensual. En iOS no hay diálogo nativo equivalente, así que se
+// expone <SchedulePickerModal>: calendario mensual (display="inline") + hora,
+// y debajo la lista de eventos que ya existen ese día en el Calendario del
 // iPhone, para que el usuario vea sus compromisos antes de confirmar.
+//
+// El día y la hora se manejan como estado LOCAL del modal (no como un valor
+// controlado desde el padre que se reconstruye en cada cambio) — con dos
+// DateTimePicker controlados compartiendo un mismo valor combinado, cada
+// cambio de uno pisaba el cambio del otro en el siguiente render y la fecha
+// quedaba "atascada". Aquí cada picker solo escribe su propio pedazo de
+// estado (día u hora), y la fecha final se arma una sola vez al confirmar.
+//
+// themeVariant="light" fuerza a que el picker siempre pinte texto oscuro
+// sobre fondo claro. Sin esto, el picker sigue el modo claro/oscuro del
+// sistema del iPhone — con el teléfono en modo oscuro pintaba los números en
+// blanco, pero el fondo del modal es siempre claro (esta app no tiene modo
+// oscuro implementado), así que los números quedaban invisibles.
+//
+// style={{ width: '100%' }} en ambos DateTimePicker: el calendario en modo
+// "inline" no ocupa todo el ancho disponible por sí solo y dejaba un espacio
+// vacío a la derecha.
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -57,16 +74,33 @@ function formatTime(isoDate) {
   return new Date(isoDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-export function SchedulePickerModal({ visible, label, date, onChange, onConfirm, onCancel }) {
+// `initialDate` solo se usa para sembrar el día/hora la primera vez que el
+// modal se abre — de ahí en adelante el usuario controla ambos libremente.
+// `onConfirm(finalDate)` recibe la fecha ya combinada al tocar "Confirmar".
+export function SchedulePickerModal({ visible, label, initialDate, onConfirm, onCancel }) {
+  const [day, setDay] = useState(initialDate);
+  const [time, setTime] = useState(initialDate);
   const [dayEvents, setDayEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
-  const dayKey = date.toDateString();
+
+  // Cada vez que el modal se abre, arranca desde la fecha sugerida —
+  // mientras está abierto, el usuario la mueve libremente sin que nada la
+  // reinicie.
+  useEffect(() => {
+    if (visible) {
+      setDay(initialDate);
+      setTime(initialDate);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
+
+  const dayKey = day.toDateString();
 
   useEffect(() => {
     if (!visible || Platform.OS !== 'ios') return;
     let cancelled = false;
     setLoadingEvents(true);
-    listEventsForDay(date)
+    listEventsForDay(day)
       .then((items) => !cancelled && setDayEvents(items))
       .catch(() => !cancelled && setDayEvents([]))
       .finally(() => !cancelled && setLoadingEvents(false));
@@ -78,18 +112,18 @@ export function SchedulePickerModal({ visible, label, date, onChange, onConfirm,
 
   if (Platform.OS !== 'ios') return null;
 
-  function handleDateChange(event, newDate) {
-    if (!newDate) return;
-    const merged = new Date(date);
-    merged.setFullYear(newDate.getFullYear(), newDate.getMonth(), newDate.getDate());
-    onChange(merged);
+  function handleDayChange(event, newDay) {
+    if (newDay) setDay(newDay);
   }
 
   function handleTimeChange(event, newTime) {
-    if (!newTime) return;
-    const merged = new Date(date);
-    merged.setHours(newTime.getHours(), newTime.getMinutes());
-    onChange(merged);
+    if (newTime) setTime(newTime);
+  }
+
+  function handleConfirm() {
+    const finalDate = new Date(day);
+    finalDate.setHours(time.getHours(), time.getMinutes(), 0, 0);
+    onConfirm(finalDate);
   }
 
   return (
@@ -106,17 +140,21 @@ export function SchedulePickerModal({ visible, label, date, onChange, onConfirm,
             <Text style={styles.label}>{label}</Text>
 
             <DateTimePicker
-              value={date}
+              value={day}
               mode="date"
               display="inline"
-              onChange={handleDateChange}
+              themeVariant="light"
+              style={styles.picker}
+              onChange={handleDayChange}
             />
 
             <Text style={[typography.sectionLabel, styles.sectionLabel]}>Hora</Text>
             <DateTimePicker
-              value={date}
+              value={time}
               mode="time"
               display="spinner"
+              themeVariant="light"
+              style={styles.picker}
               onChange={handleTimeChange}
             />
 
@@ -142,7 +180,7 @@ export function SchedulePickerModal({ visible, label, date, onChange, onConfirm,
 
           <View style={styles.actions}>
             <AppButton title="Cancelar" onPress={onCancel} variant="neutral" size="large" style={styles.actionButton} />
-            <AppButton title="Confirmar" onPress={onConfirm} variant="primary" size="large" style={styles.actionButton} />
+            <AppButton title="Confirmar" onPress={handleConfirm} variant="primary" size="large" style={styles.actionButton} />
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -173,6 +211,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   scrollContent: { paddingBottom: 24 },
+  picker: { width: '100%' },
   label: { fontSize: 18, fontWeight: '700', color: colors.text, marginBottom: spacing.md, letterSpacing: -0.3 },
   sectionLabel: { marginTop: spacing.md, marginBottom: spacing.sm },
   noEvents: { fontSize: 13, color: colors.textSecondary },
