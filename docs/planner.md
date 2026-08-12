@@ -35,13 +35,23 @@ pendientes del to-do list). Usa los mismos hooks que `TasksScreen.js`
 (`useWorkBlockScheduler.js`, `useAssignmentSubmission.js`), evitando duplicar
 la lógica de programar bloque / entregar tarea.
 
-## Fase 4 — Automatización (n8n) — No iniciada
-Ideas evaluadas conceptualmente, no implementadas:
-- Cron diario que jale tareas de Canvas y notifique por Telegram/WhatsApp/email
-- Detección de tarea nueva comparando snapshots del `/todo`
-- Notas/promedio ponderado desde `/users/self/grades`
-- Descarga automática de material nuevo de cursos
-- Feed unificado de anuncios de todos los cursos
+## Fase 4 — Automatización (n8n) — Parcial
+El usuario ya tiene n8n corriendo (self-hosted/cloud, fuera de este repo).
+Workflows en `automation/` (ver `automation/README.md` para instalación):
+1. ✅ **Cron diario que jale tareas de Canvas y notifique por email** —
+   `automation/canvas-tareas-nuevas.json`
+2. ✅ **Detección de tarea nueva comparando snapshots del `/todo`** — mismo
+   workflow; usa el *workflow static data* de n8n para recordar qué
+   assignment IDs ya se vieron, solo notifica los que no estaban antes
+3. ✅ **Notas/promedio desde Canvas** — `automation/canvas-promedio-notas.json`.
+   Es un promedio **simple**, no ponderado por créditos (Canvas no expone esa
+   información de forma genérica); usa `GET /courses?include[]=total_scores`
+   en vez de `/users/self/grades`
+4. **Pendiente:** descarga automática de material nuevo de cursos
+5. **Pendiente:** feed unificado de anuncios de todos los cursos
+
+Se descartó Telegram como canal (el usuario no puede usarlo) — ambos
+workflows envían por email vía el nodo SMTP de n8n.
 
 ## Fase 5 — Otras fuentes (exploración, no decidida)
 - **Notion**: como base de datos visible de tareas/estado (tiene API REST pública,

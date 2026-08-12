@@ -1,0 +1,111 @@
+{
+  "name": "Canvas - Promedio de notas",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 8,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "trigger",
+      "name": "Cada día 8am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "canvas_base_url",
+              "name": "canvas_base_url",
+              "value": "https://umb.instructure.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "config",
+      "name": "Configuración",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.canvas_base_url }}/api/v1/courses?enrollment_state=active&include[]=total_scores",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "http_courses",
+      "name": "GET /courses (con notas)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REEMPLAZAR",
+          "name": "Canvas API Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Promedio SIMPLE (no ponderado por créditos — Canvas no expone esa\n// información de forma genérica) de la nota actual de cada curso activo.\n// Solo notifica si algo cambió desde la última corrida (comparando contra\n// el snapshot guardado en n8n workflow static data); si no cambió nada,\n// devuelve un array vacío y el nodo de email no se ejecuta.\n//\n// Si quieres ponderar por créditos de verdad, agrega los créditos de cada\n// curso a mano en un objeto aquí (ej. { 101: 3, 102: 4 }) y ajusta el\n// cálculo de `total`/`count` para usar esos pesos en vez de contar 1 por curso.\n\nconst courses = $input.all().map(i => i.json);\nconst staticData = $getWorkflowStaticData('global');\nconst previous = staticData.lastScores || {};\n\nconst current = {};\nconst lines = [];\nlet total = 0;\nlet count = 0;\n\nfor (const course of courses) {\n  const enrollment = (course.enrollments || [])[0];\n  const score = enrollment?.computed_current_score;\n  if (score === null || score === undefined) continue;\n\n  current[course.id] = score;\n  total += score;\n  count += 1;\n  lines.push(`- ${course.name}: ${score}`);\n}\n\nconst changed = JSON.stringify(current) !== JSON.stringify(previous);\nstaticData.lastScores = current;\n\nif (!changed || count === 0) {\n  return [];\n}\n\nconst average = (total / count).toFixed(1);\nconst text = `Promedio simple actual: ${average}\\n\\n${lines.join('\\n')}`;\n\nreturn [{ json: { subject: 'Canvas: notas actualizadas', text } }];\n"
+      },
+      "id": "grades",
+      "name": "Calcular promedio",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "REEMPLAZAR@ejemplo.com",
+        "toEmail": "REEMPLAZAR@ejemplo.com",
+        "subject": "={{ $json.subject }}",
+        "text": "={{ $json.text }}",
+        "options": {}
+      },
+      "id": "email",
+      "name": "Enviar email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1120, 300],
+      "credentials": {
+        "smtp": {
+          "id": "REEMPLAZAR",
+          "name": "SMTP Canvas Dashboard"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Cada día 8am": {
+      "main": [[{ "node": "Configuración", "type": "main", "index": 0 }]]
+    },
+    "Configuración": {
+      "main": [[{ "node": "GET /courses (con notas)", "type": "main", "index": 0 }]]
+    },
+    "GET /courses (con notas)": {
+      "main": [[{ "node": "Calcular promedio", "type": "main", "index": 0 }]]
+    },
+    "Calcular promedio": {
+      "main": [[{ "node": "Enviar email", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}

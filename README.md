@@ -16,6 +16,8 @@ no está publicada ni se planea publicar en la App Store.
   falta
 - [`docs/decisiones.md`](docs/decisiones.md) — registro cronológico de decisiones
   técnicas con su justificación
+- [`automation/README.md`](automation/README.md) — workflows de n8n (avisos
+  por email de tareas nuevas y cambios de nota), fuera de la app Expo
 
 ## Cómo correrlo
 
@@ -39,5 +41,6 @@ Escanea el QR con Expo Go (SDK 54) en tu iPhone.
 
 Fases 1, 2 y 3 completadas — incluye entrega de tareas por texto, URL o
 archivo. Además, pantalla "Cursos" (no estaba en el roadmap original) para
-explorar todas las tareas de un curso, no solo las pendientes. Ver
-`docs/planner.md` para el detalle completo.
+explorar todas las tareas de un curso, no solo las pendientes. Fase 4
+(automatización) parcial — ver `automation/README.md`. Ver `docs/planner.md`
+para el detalle completo.

@@ -27,8 +27,15 @@ indique lo contrario.
 ## Alcance — qué NO construir aquí
 - **No** construir tracking de gimnasio (series, pesos, progreso) — eso vive en la
   app externa Liftoff. Esta app solo crea el bloque de horario.
-- **No** agregar integraciones de Notion/Obsidian/n8n/finanzas todavía — están en
+- **No** agregar integraciones de Notion/Obsidian/finanzas todavía — están en
   `docs/planner.md` como exploración futura, no como trabajo pendiente activo.
+  n8n es la excepción: ya hay workflows en `automation/` (ver más abajo).
+- **`automation/` no es código de la app.** Son workflows de n8n (JSON) que
+  corren en la instancia de n8n del usuario, fuera de este proyecto Expo —
+  no tienen `package.json`, no se instalan, no corren con `expo start`. Solo
+  se versionan acá para tenerlos en git. Nunca poner un token o contraseña
+  real dentro de esos `.json` — las credenciales viven únicamente en el
+  almacén cifrado de n8n (ver `automation/README.md`).
 
 ## Convenciones del proyecto
 - Comentarios de cabecera en cada archivo explicando su propósito (ver archivos
@@ -72,5 +79,8 @@ que lista cursos activos y todas las tareas de cada uno (no solo las
 pendientes), conectando `getCourses()`/`getAssignments()` que existían sin
 usarse.
 
-Fases 4 (automatización n8n) y 5 (Notion/Obsidian/finanzas) siguen siendo
-exploración, no trabajo pendiente activo — ver "Alcance" arriba.
+Fase 4 (automatización n8n) parcial: dos workflows en `automation/` — avisar
+por email tareas nuevas del `/todo`, y avisar por email cuando cambian las
+notas (promedio simple). Ideas de Fase 4 sin construir: descarga automática
+de material nuevo, feed de anuncios. Fase 5 (Notion/Obsidian/finanzas) sigue
+siendo exploración, no trabajo pendiente activo — ver "Alcance" arriba.

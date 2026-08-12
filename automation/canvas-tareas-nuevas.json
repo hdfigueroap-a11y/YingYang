@@ -1,0 +1,111 @@
+{
+  "name": "Canvas - Tareas nuevas",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 7,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "trigger",
+      "name": "Cada día 7am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "canvas_base_url",
+              "name": "canvas_base_url",
+              "value": "https://umb.instructure.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "config",
+      "name": "Configuración",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.canvas_base_url }}/api/v1/users/self/todo",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "http_todo",
+      "name": "GET /users/self/todo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REEMPLAZAR",
+          "name": "Canvas API Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Compara el /todo actual contra el snapshot guardado en la\n// última corrida del workflow (n8n workflow static data) y arma un\n// mensaje SOLO si hay tareas que no estaban antes. Si no hay nada\n// nuevo, devuelve un array vacío — eso hace que el nodo de email\n// que sigue simplemente no se ejecute (0 items de entrada = no corre).\n\nconst todoItems = $input.all().map(i => i.json);\nconst staticData = $getWorkflowStaticData('global');\nconst previousIds = staticData.seenAssignmentIds || [];\n\nconst currentIds = todoItems\n  .map(item => item.assignment?.id)\n  .filter(id => id !== undefined && id !== null);\n\nconst newItems = todoItems.filter(item => {\n  const id = item.assignment?.id;\n  return id !== undefined && id !== null && !previousIds.includes(id);\n});\n\nstaticData.seenAssignmentIds = currentIds;\n\nif (newItems.length === 0) {\n  return [];\n}\n\nconst lines = newItems.map(item => {\n  const name = item.assignment?.name || 'Tarea sin título';\n  const course = item.context_name || '';\n  const due = item.assignment?.due_at\n    ? new Date(item.assignment.due_at).toLocaleString('es-CO')\n    : 'sin fecha límite';\n  return `- ${name} (${course}) — vence ${due}`;\n}).join('\\n');\n\nreturn [{\n  json: {\n    subject: `Canvas: ${newItems.length} tarea(s) nueva(s)`,\n    text: `Tienes ${newItems.length} tarea(s) nueva(s) en Canvas:\\n\\n${lines}`,\n  },\n}];\n"
+      },
+      "id": "diff",
+      "name": "Detectar tareas nuevas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "REEMPLAZAR@ejemplo.com",
+        "toEmail": "REEMPLAZAR@ejemplo.com",
+        "subject": "={{ $json.subject }}",
+        "text": "={{ $json.text }}",
+        "options": {}
+      },
+      "id": "email",
+      "name": "Enviar email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1120, 300],
+      "credentials": {
+        "smtp": {
+          "id": "REEMPLAZAR",
+          "name": "SMTP Canvas Dashboard"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Cada día 7am": {
+      "main": [[{ "node": "Configuración", "type": "main", "index": 0 }]]
+    },
+    "Configuración": {
+      "main": [[{ "node": "GET /users/self/todo", "type": "main", "index": 0 }]]
+    },
+    "GET /users/self/todo": {
+      "main": [[{ "node": "Detectar tareas nuevas", "type": "main", "index": 0 }]]
+    },
+    "Detectar tareas nuevas": {
+      "main": [[{ "node": "Enviar email", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}
