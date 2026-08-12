@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "canvas-dashboard",
+    "slug": "canvas-dashboard",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "com.tuusuario.canvasdashboard",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCalendarsUsageDescription": "Canvas Dashboard necesita acceso a tu Calendario para crear tus bloques de sueño, lectura, gimnasio y trabajo en tareas."
+      }
+    }
+  }
+}
