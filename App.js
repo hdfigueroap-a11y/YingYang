@@ -45,17 +45,19 @@ const SCREEN_COLORS = {
 };
 
 function CustomDrawerContent({ onLogout, ...props }) {
-  // El paddingBottom automático de DrawerContentScrollView (12 + inset del
-  // indicador de inicio) no siempre alcanza a empujar "Cerrar sesión" hasta
-  // abajo del todo dentro del ScrollView — se suma el inset a mano acá,
-  // igual que se resolvió arriba con el título.
+  // La vez pasada esto se subió en vez de bajar: DrawerContentScrollView YA
+  // suma su propio paddingBottom (12 + insets.bottom) automáticamente, y acá
+  // se sumaba insets.bottom OTRA VEZ encima — el inset quedaba contado dos
+  // veces, empujando el botón más arriba, no más abajo. Ahora se toma
+  // control completo: se pisa el paddingBottom automático del componente
+  // (contentContainerStyle) y se define uno solo, a mano, en `drawerFooter`.
   const insets = useSafeAreaInsets();
 
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerContent}>
       <Text style={styles.drawerTitle}>Canvas Dashboard</Text>
       <DrawerItemList {...props} />
-      <View style={[styles.drawerFooter, { paddingBottom: spacing.lg + insets.bottom }]}>
+      <View style={[styles.drawerFooter, { paddingBottom: insets.bottom }]}>
         <AppButton title="Cerrar sesión" onPress={onLogout} variant="plain" />
       </View>
     </DrawerContentScrollView>
@@ -145,7 +147,12 @@ const styles = StyleSheet.create({
   // componente y el nuestro se mezclan en un array y la clave repetida se
   // queda con el último valor) y el título del menú termina pegado arriba,
   // debajo del reloj — justo el bug reportado.
-  drawerContent: { flex: 1 },
+  //
+  // paddingBottom SÍ se pisa a propósito (a 0): el paddingBottom automático
+  // del componente (12 + insets.bottom) es justo lo que hacía que "Cerrar
+  // sesión" quedara más arriba de lo que el usuario quería. Ese espacio
+  // ahora lo controla solo `drawerFooter` (ver CustomDrawerContent).
+  drawerContent: { flex: 1, paddingBottom: 0 },
   drawerTitle: {
     fontSize: 16,
     fontWeight: '700',

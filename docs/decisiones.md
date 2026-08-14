@@ -159,6 +159,18 @@ hasta abajo del todo dentro del contenido scrolleable, se sumó
 `CustomDrawerContent`) — mismo mecanismo explícito que ya funcionó arriba,
 en vez de depender del comportamiento implícito del `ScrollView`.
 
+Ese cambio en realidad lo subió, no lo bajó: `DrawerContentScrollView` YA
+suma `insets.bottom` a su `paddingBottom` automáticamente, y el
+`insets.bottom` agregado a mano en `drawerFooter` se sumaba ENCIMA de ese —
+el inset quedaba contado dos veces, dejando más espacio del necesario antes
+del botón (que en un contenedor de altura fija, empuja el botón hacia
+arriba, no hacia abajo). El usuario pidió bajarlo "2 veces la cantidad que
+subiste". Arreglo: en vez de sumar sobre el automático, se toma control
+completo — `drawerContent` (contentContainerStyle) pisa el `paddingBottom`
+automático a `0`, y `drawerFooter` define un único `paddingBottom:
+insets.bottom` (sin la capa extra de `spacing.lg` de antes), quedando más
+abajo que la versión original (antes de cualquiera de los dos intentos).
+
 Los formularios de "Agregar movimiento" (`FinanceScreen.js`) y "Agregar
 clase" (`ScheduleScreen.js`) usaban `display="compact"` para fecha/hora y
 se veían mal centrados — mismo problema de tamaño intrínseco ambiguo que ya
