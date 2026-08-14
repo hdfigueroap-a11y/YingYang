@@ -17,11 +17,11 @@ import { colors, radius, spacing, cardShadow, typography, colorFromString } from
 // Plantillas rápidas para los bloques que definimos: sueño, lectura, gym, trabajo.
 // Cada uno con su propio color e ícono para diferenciarlos de un vistazo.
 const QUICK_BLOCKS = [
-  { title: 'Sueño', durationMin: 480, icon: '😴', color: '#5856D6' }, // 8h
-  { title: 'Lectura', durationMin: 60, icon: '📖', color: '#FF9500' },
-  { title: 'Gimnasio', durationMin: 60, icon: '🏋️', color: '#34C759' },
-  { title: 'Trabajo — tarea difícil', durationMin: 120, icon: '🔴', color: '#FF3B30' },
-  { title: 'Trabajo — tarea fácil', durationMin: 60, icon: '🔵', color: '#30B0C7' },
+  { title: 'Sueño', durationMin: 480, icon: '😴', color: '#7B2FF7' }, // 8h
+  { title: 'Lectura', durationMin: 60, icon: '📖', color: '#FF9F1C' },
+  { title: 'Gimnasio', durationMin: 60, icon: '🏋️', color: '#39FF88' },
+  { title: 'Trabajo — tarea difícil', durationMin: 120, icon: '🔴', color: '#FF3B5C' },
+  { title: 'Trabajo — tarea fácil', durationMin: 60, icon: '🔵', color: '#00E5FF' },
 ];
 
 function formatDuration(durationMin) {
@@ -154,11 +154,7 @@ export default function CalendarScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={typography.screenTitle}>Calendario</Text>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={typography.sectionLabel}>Crear bloque rápido</Text>
@@ -224,7 +220,7 @@ export default function CalendarScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, paddingTop: 50 },
+  container: { flex: 1, backgroundColor: colors.background, paddingTop: spacing.md },
   center: {
     flex: 1,
     justifyContent: 'center',
@@ -232,7 +228,7 @@ const styles = StyleSheet.create({
     padding: spacing.xxl,
     backgroundColor: colors.background,
   },
-  header: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
+  scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.xl },
   permissionBadge: {
     width: 64,

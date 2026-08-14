@@ -17,6 +17,11 @@
    programa en el día/hora que el usuario elija; la dificultad (fácil/difícil,
    define la duración) también la elige el usuario — lógica en
    `useWorkBlockScheduler.js`, ver `canvas-api.md` para el detalle
+5. ✅ **Horario de clases** (`scheduleDb.js` + `ScheduleScreen.js`, nueva
+   sección "Horario" en el menú): registro manual del horario fijo (lunes a
+   sábado), y cada clase se puede convertir en evento semanal recurrente del
+   Calendario del iPhone. Canvas no expone un horario semanal por API, así
+   que no hay forma de traerlo automáticamente — ver `docs/decisiones.md`.
 
 ## Fase 3 — Envío de entregas (submissions) ✅ Completada
 1. ✅ `POST /courses/:id/assignments/:id/submissions` — texto (`online_text_entry`)
@@ -53,7 +58,68 @@ Workflows en `automation/` (ver `automation/README.md` para instalación):
 Se descartó Telegram como canal (el usuario no puede usarlo) — ambos
 workflows envían por email vía el nodo SMTP de n8n.
 
-## Fase 5 — Otras fuentes (exploración, no decidida)
+## Rediseño de navegación — ✅ Completado
+Pestañas inferiores → menú lateral (Drawer, ícono ☰ arriba a la izquierda),
+pedido explícito del usuario. Terminó en `@react-navigation/native` +
+`@react-navigation/drawer` **v7** (no v6: su Drawer resultó incompatible de
+raíz con Reanimated 4, que Expo SDK 54 exige — 3 rondas de errores en
+dispositivo antes de migrar, ver `docs/decisiones.md` para el detalle
+completo). Trae `react-native-gesture-handler` + `react-native-reanimated`
++ `react-native-worklets`, con `babel.config.js` nuevo en la raíz. Se quitó
+`@react-navigation/bottom-tabs`, sin uso desde el cambio a Drawer. El botón
+"Cerrar sesión" se movió al pie del menú.
+
+## Rediseño visual — ✅ Completado
+La app pasó de un estilo claro tipo iOS nativo a un diseño oscuro
+"futurista": fondo casi negro con tinte azul-violeta, tarjetas con borde
+sutil y resplandor cian, acentos en degradado cian → violeta vía
+`expo-linear-gradient` (instalado con confirmación del usuario). Todo sigue
+centralizado en `theme.js`/`AppButton.js` — ver `docs/arquitectura.md` y
+`docs/decisiones.md`.
+
+## Fase 5 — Finanzas personales ✅ Completada (registro manual)
+Promovida de "exploración" a fase activa del roadmap, y ya construida por
+completo en su versión manual. Plan por pasos:
+1. ✅ **Diseño de datos y almacenamiento** — `expo-sqlite` (instalado con
+   confirmación del usuario; se descartó JSON simple vía `AsyncStorage`
+   porque el historial de movimientos crece indefinidamente y necesita
+   agregación por mes/categoría, algo que SQL resuelve gratis). Esquema en
+   `financeDb.js`: `accounts` (efectivo/débito/crédito/ahorro), `categories`
+   (cada una de tipo `ingreso` o `gasto`), `transactions` (monto siempre
+   positivo — el signo lo da la categoría), `budgets` (límite mensual por
+   categoría). Incluye siembra de cuentas/categorías por defecto y funciones
+   de acceso a datos (`getMonthSummary`, `getBudgetsForMonth`, etc.) — ver el
+   archivo para el detalle.
+2. ✅ **Tarjeta de crédito — manual, sin conectar a ningún banco.** Se
+   evaluó enlazar con Nu directamente (ver `docs/decisiones.md`) y se
+   descartó: no tiene API pública para apps personales, y la alternativa
+   (agregadores como Belvo/Pluggy) es un servicio de pago de un tercero con
+   su propia superficie de credenciales — demasiado para el alcance de esta
+   app. Las cuentas de tipo `credito` ahora pueden tener cupo/día de
+   corte/día de pago (`credit_limit`, `cutoff_day`, `due_day`), y los
+   movimientos tienen `installments` (cuotas, 1 = de contado). El "cuándo
+   vence" se calcula al vuelo a partir de esos días, no se guarda una fecha
+   fija (`getCreditCards()`, `getCardPurchases()`,
+   `getInstallmentProgress()` en `financeDb.js`).
+3. ✅ **Registro manual**: `FinanceScreen.js` — 4ta pestaña "Finanzas".
+   Selector de mes, resumen (ingresos/gastos/balance), formulario para
+   agregar ingreso/gasto (monto, fecha, categoría, cuenta, nota, cuotas si
+   la cuenta es de crédito), lista de movimientos del mes (tocar uno lo
+   elimina), y apartado de tarjetas de crédito (gasto del corte actual,
+   cupo disponible, próxima fecha de pago, ver compras, configurar
+   cupo/día de corte/día de pago). Reutiliza `theme.js`/`AppButton.js` como
+   el resto de la app.
+4. ✅ **Presupuestos y alertas**: sección "Presupuestos del mes" en
+   `FinanceScreen.js` — un presupuesto por categoría de gasto, con barra de
+   progreso (gastado / presupuestado) que cambia de color: acento normal,
+   naranja al llegar al 80%, rojo al excederlo. Tocar un presupuesto lo
+   edita o lo elimina (`setBudget`/`deleteBudget` en `financeDb.js`).
+5. **(Futuro, sin decidir)** Automatizar con n8n: parsear notificaciones de
+   transacciones bancarias desde Gmail, o esperar a que Open Finance
+   Colombia (Decreto 0368/2026, todavía en despliegue) exponga una API
+   abierta de bancos.
+
+## Fase 6 — Otras fuentes (exploración, no decidida)
 - **Notion**: como base de datos visible de tareas/estado (tiene API REST pública,
   a diferencia de Obsidian)
 - **Obsidian + Readwise**: notas locales + sincronización de highlights de lectura
@@ -61,9 +127,6 @@ workflows envían por email vía el nodo SMTP de n8n.
 - **Hermes Agent**: framework de agente open source (Nous Research) que combina
   Notion (datos estructurados) + Obsidian (memoria narrativa) — evaluado, no
   adoptado todavía
-- **Finanzas**: Open Finance Colombia (Decreto 0368/2026, obligatorio para bancos)
-  todavía en despliegue; alternativa evaluada: parsear notificaciones de
-  transacciones desde Gmail vía n8n
 - **Claude API** (no Claude Code) para el "cerebro" que analiza carga de tareas y
   sugiere horario — distinto de Claude Code, que se usa para desarrollar la app
 

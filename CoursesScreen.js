@@ -137,7 +137,6 @@ export default function CoursesScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={[typography.screenTitle, styles.title]}>Tus cursos</Text>
       {error && <Text style={styles.error}>{error}</Text>}
       <FlatList
         data={courses}
@@ -164,7 +163,7 @@ export default function CoursesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, paddingTop: 50, paddingHorizontal: spacing.lg },
+  container: { flex: 1, backgroundColor: colors.background, paddingTop: spacing.md, paddingHorizontal: spacing.lg },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
   header: { flexDirection: 'row', marginBottom: spacing.xs },
   courseTitleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.lg },

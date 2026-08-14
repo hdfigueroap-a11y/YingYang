@@ -46,6 +46,30 @@ export async function createEvent({ title, notes, startDate, endDate }) {
   });
 }
 
+// Crea un evento semanal recurrente (usado por el Horario de clases: una
+// clase fija cada semana). `occurrenceCount` por defecto cubre un semestre
+// típico (16 semanas) — no hay UI para cambiarlo, se puede volver a crear
+// si se necesita extender.
+export async function createWeeklyRecurringEvent({ title, notes, startDate, endDate, occurrenceCount = 16 }) {
+  const calendarId = await getDefaultCalendarId();
+  if (!calendarId) {
+    throw new Error('No se encontró un calendario disponible en el dispositivo.');
+  }
+
+  return Calendar.createEventAsync(calendarId, {
+    title,
+    notes,
+    startDate,
+    endDate,
+    timeZone: undefined,
+    recurrenceRule: {
+      frequency: Calendar.Frequency.WEEKLY,
+      interval: 1,
+      occurrenceCount,
+    },
+  });
+}
+
 // Trae los eventos entre dos fechas (por defecto, próximos 7 días)
 export async function listUpcomingEvents(days = 7) {
   const calendarId = await getDefaultCalendarId();

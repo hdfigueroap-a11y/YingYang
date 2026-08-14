@@ -1,24 +1,36 @@
 // theme.js
-// Paleta y constantes de estilo compartidas — estilo iOS nativo (SF Pro,
-// superficies blancas sobre fondo gris #F2F2F7, acento azul del sistema).
-// Un solo lugar para tocar colores/espaciados en vez de repetir hex sueltos
-// en cada pantalla.
+// Paleta y constantes de estilo compartidas — diseño oscuro "futurista": fondo
+// casi negro con tinte azul-violeta, tarjetas con borde sutil y resplandor
+// (glow) cian, acentos en gradiente cian → violeta vía expo-linear-gradient
+// (ver AppButton.js). Un solo lugar para tocar colores/espaciados en vez de
+// repetir hex sueltos en cada pantalla.
 
 export const colors = {
-  background: '#f2f2f7', // fondo agrupado (detrás de las tarjetas)
-  surface: '#ffffff', // fondo de tarjetas/inputs
-  text: '#1c1c1e',
-  textSecondary: '#6c6c70',
-  textTertiary: '#aeaeb2',
-  accent: '#007aff',
-  accentSoft: '#f0f8ff', // fondo suave para botones secundarios de acento
-  danger: '#c0392b',
-  dangerSoft: '#fff5f5',
-  success: '#34c759',
-  successSoft: '#f0fff4',
-  separator: '#c6c6c8',
-  fill: '#e5e5ea', // fondo neutro (botones "Cancelar", inputs deshabilitados)
-  fillSoft: '#f2f2f7',
+  background: '#05060f', // fondo base, casi negro con tinte azul
+  surface: '#12162a', // fondo de tarjetas/inputs
+  surfaceRaised: '#181d38', // variante más clara (elementos elevados/focus)
+  text: '#eef1ff',
+  textSecondary: '#8f97b8',
+  textTertiary: '#565d7a',
+  accent: '#00e5ff', // cian eléctrico
+  accent2: '#7b2ff7', // violeta — segundo color del gradiente de acento
+  accentSoft: 'rgba(0, 229, 255, 0.1)', // fondo suave para botones secundarios de acento
+  danger: '#ff3864',
+  dangerSoft: 'rgba(255, 56, 100, 0.12)',
+  success: '#00ffa3',
+  successSoft: 'rgba(0, 255, 163, 0.12)',
+  separator: '#232a45',
+  fill: '#1b2140', // fondo neutro (botones "Cancelar", inputs deshabilitados)
+  fillSoft: '#151933',
+};
+
+// Gradientes reutilizables (expo-linear-gradient) — el botón primario y
+// algunos acentos visuales usan estos en vez de un color sólido, para el
+// efecto "futurista" de degradado cian → violeta.
+export const gradients = {
+  primary: ['#00e5ff', '#7b2ff7'],
+  success: ['#00ffa3', '#00c2ff'],
+  danger: ['#ff3864', '#ff00c8'],
 };
 
 export const radius = {
@@ -38,12 +50,16 @@ export const spacing = {
   xxl: 24,
 };
 
-// Sombra sutil de tarjeta (solo iOS — la app es de uso exclusivo en iPhone)
+// Sombra de tarjeta estilo "glow": borde sutil + resplandor cian en vez de la
+// sombra negra clásica (una sombra negra no se nota sobre un fondo casi
+// negro). Solo iOS — la app es de uso exclusivo en iPhone.
 export const cardShadow = {
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.06,
-  shadowRadius: 3,
+  borderWidth: 1,
+  borderColor: colors.separator,
+  shadowColor: colors.accent,
+  shadowOffset: { width: 0, height: 0 },
+  shadowOpacity: 0.18,
+  shadowRadius: 10,
 };
 
 export const typography = {
@@ -60,20 +76,19 @@ export const typography = {
 };
 
 // Paleta amplia para darle color a cursos, bloques y eventos (tarjetas con
-// franja de color, íconos, puntos de evento) sin depender solo del azul de
-// acento. Colores vivos pero del mismo "temperamento" visual (saturación y
-// brillo similares) para que combinen entre sí.
+// franja de color, íconos, puntos de evento) sin depender solo del acento
+// cian. Tonos neón, elegidos para leerse bien sobre el fondo casi negro.
 export const palette = [
-  '#FF3B30', // rojo
-  '#FF9500', // naranja
-  '#FFCC00', // amarillo
-  '#34C759', // verde
-  '#00C7BE', // teal
-  '#30B0C7', // cian
-  '#007AFF', // azul
-  '#5856D6', // índigo
-  '#AF52DE', // púrpura
-  '#FF2D55', // rosa
+  '#FF3B5C', // rojo neón
+  '#FF9F1C', // naranja
+  '#FFD60A', // amarillo
+  '#39FF88', // verde neón
+  '#00F5D4', // teal neón
+  '#00E5FF', // cian (acento)
+  '#3D8BFF', // azul
+  '#7B2FF7', // violeta
+  '#C77DFF', // púrpura claro
+  '#FF2DA0', // rosa neón
 ];
 
 // Asigna un color de la paleta a partir de un texto (ej. nombre de curso),

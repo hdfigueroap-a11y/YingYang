@@ -14,15 +14,18 @@
 // quedaba "atascada". Aquí cada picker solo escribe su propio pedazo de
 // estado (día u hora), y la fecha final se arma una sola vez al confirmar.
 //
-// themeVariant="light" fuerza a que el picker siempre pinte texto oscuro
-// sobre fondo claro. Sin esto, el picker sigue el modo claro/oscuro del
-// sistema del iPhone — con el teléfono en modo oscuro pintaba los números en
-// blanco, pero el fondo del modal es siempre claro (esta app no tiene modo
-// oscuro implementado), así que los números quedaban invisibles.
+// themeVariant="dark" fuerza a que el picker siempre pinte texto claro sobre
+// fondo oscuro, para que combine con el diseño oscuro de la app en vez de
+// seguir el modo claro/oscuro del sistema del iPhone (que podía mostrar un
+// picker claro flotando sobre un modal oscuro).
 //
-// style={{ width: '100%' }} en ambos DateTimePicker: el calendario en modo
-// "inline" no ocupa todo el ancho disponible por sí solo y dejaba un espacio
-// vacío a la derecha.
+// El calendario en modo "inline" (y el spinner de hora) tienen un tamaño de
+// dibujo NATIVO fijo (no lo estiran aunque el marco que les demos sea más
+// ancho — ya se probó con porcentaje y con píxeles exactos, en ambos casos
+// el picker se queda pegado a la izquierda y deja el resto del marco vacío
+// a la derecha). Como no se puede forzar a que su contenido ocupe más
+// espacio, la solución es dejarlo con su ancho natural (sin `width` fijo) y
+// centrarlo (`alignSelf: 'center'`) dentro del modal, que sí es ancho.
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -143,7 +146,7 @@ export function SchedulePickerModal({ visible, label, initialDate, onConfirm, on
               value={day}
               mode="date"
               display="inline"
-              themeVariant="light"
+              themeVariant="dark"
               style={styles.picker}
               onChange={handleDayChange}
             />
@@ -153,7 +156,7 @@ export function SchedulePickerModal({ visible, label, initialDate, onConfirm, on
               value={time}
               mode="time"
               display="spinner"
-              themeVariant="light"
+              themeVariant="dark"
               style={styles.picker}
               onChange={handleTimeChange}
             />
@@ -192,12 +195,16 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(0,0,0,0.65)',
   },
   content: {
     backgroundColor: colors.background,
     borderTopLeftRadius: radius.sheet,
     borderTopRightRadius: radius.sheet,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: colors.separator,
     paddingHorizontal: spacing.lg,
     maxHeight: '88%',
   },
@@ -211,7 +218,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   scrollContent: { paddingBottom: 24 },
-  picker: { width: '100%' },
+  picker: { alignSelf: 'center' },
   label: { fontSize: 18, fontWeight: '700', color: colors.text, marginBottom: spacing.md, letterSpacing: -0.3 },
   sectionLabel: { marginTop: spacing.md, marginBottom: spacing.sm },
   noEvents: { fontSize: 13, color: colors.textSecondary },

@@ -17,6 +17,24 @@ indique lo contrario.
 - `expo-calendar` para el calendario — **no** agregar Google Calendar API ni
   Microsoft Graph, fue una decisión explícita descartar ambos (ver
   `docs/calendario.md`)
+- Navegación: `@react-navigation/drawer` **v7** (menú lateral ☰, no pestañas
+  inferiores) — pedido explícito del usuario, elegido sobre un menú a la
+  medida sin dependencias nuevas. **No degradar a v6**: su Drawer usa
+  `useAnimatedGestureHandler`, una función que Reanimated 3+ eliminó de su
+  API — v6 nunca se actualizó y no hay forma de hacerlo funcionar con el
+  Reanimated que Expo SDK 54 exige (ver `docs/decisiones.md` para las 3
+  rondas de errores que llevaron a esta conclusión). Requiere
+  `react-native-gesture-handler` + `react-native-reanimated` y un
+  `babel.config.js` en la raíz con el plugin de Reanimated al final — **no
+  lo borres ni cambies el orden de los plugins**. `babel-preset-expo` está
+  como devDependency explícita porque no es resoluble desde la raíz si solo
+  queda anidada dentro de `expo/`. `react-native-worklets` (peer de
+  Reanimated) debe quedar declarado explícitamente en `package.json` — si
+  npm lo instala solo como dependencia transitiva puede resolver una
+  versión más nueva que la que Expo Go trae precompilada para el SDK, y
+  la app truena con `Exception in HostFunction` al iniciar. Ante cualquier
+  duda sobre versiones de módulos nativos, correr `npx expo install --check`
+  antes de asumir que el código está mal.
 
 ## Reglas de seguridad de este proyecto
 - Nunca hardcodear tokens, API keys, ni client IDs en el código — siempre vía
@@ -27,9 +45,16 @@ indique lo contrario.
 ## Alcance — qué NO construir aquí
 - **No** construir tracking de gimnasio (series, pesos, progreso) — eso vive en la
   app externa Liftoff. Esta app solo crea el bloque de horario.
-- **No** agregar integraciones de Notion/Obsidian/finanzas todavía — están en
-  `docs/planner.md` como exploración futura, no como trabajo pendiente activo.
-  n8n es la excepción: ya hay workflows en `automation/` (ver más abajo).
+- **No** agregar integraciones de Notion/Obsidian todavía — están en
+  `docs/planner.md` (Fase 6) como exploración futura, no como trabajo pendiente
+  activo. n8n es la excepción: ya hay workflows en `automation/` (ver más abajo).
+- **Finanzas ya no está descartada** — Fase 5 del roadmap, completa en su
+  versión manual (ver `docs/planner.md`): `expo-sqlite` (con confirmación
+  del usuario), esquema en `financeDb.js` (`accounts`, `categories`,
+  `transactions`, `budgets`) y pantalla `FinanceScreen.js` con registro
+  manual, resumen del mes, presupuestos con barra de progreso, y tarjeta de
+  crédito — todo manual, sin conexión a ningún banco (se evaluó y descartó
+  enlazar con Nu, ver `docs/decisiones.md`).
 - **`automation/` no es código de la app.** Son workflows de n8n (JSON) que
   corren en la instancia de n8n del usuario, fuera de este proyecto Expo —
   no tienen `package.json`, no se instalan, no corren con `expo start`. Solo
@@ -45,15 +70,16 @@ indique lo contrario.
 - Cambios pequeños y acotados — el usuario prefiere ediciones puntuales sobre
   archivos existentes, no regeneración completa de la carpeta
 - **Diseño visual: usar `theme.js` y `AppButton.js`, no valores sueltos.** El
-  estilo de la app (colores, radios, espaciados, tipografía) ya está aplicado
-  a todas las pantallas — ver `docs/arquitectura.md`. Nunca usar `<Button>` de
+  estilo de la app es oscuro y "futurista" (fondo casi negro con tinte
+  azul-violeta, tarjetas con borde sutil y resplandor cian, acentos en
+  degradado cian → violeta vía `expo-linear-gradient`) y ya está aplicado a
+  todas las pantallas — ver `docs/arquitectura.md`. Nunca usar `<Button>` de
   `react-native` directamente ni colores hex sueltos en pantallas nuevas; usar
-  `AppButton` (variantes `primary`/`secondary`/`neutral`/`plain`) y los
-  tokens de `theme.js`. El usuario pidió explícitamente que la app se vea
-  colorida — para colorear cursos/eventos usar `colorFromString(texto)` de
-  `theme.js` (asigna un color consistente de `palette` al mismo texto), no
-  colores fijos, salvo que el color tenga un significado semántico (rojo =
-  urgente/conflicto, verde = éxito).
+  `AppButton` (variantes `primary`/`secondary`/`neutral`/`plain`, `gradients`
+  de `theme.js`) y los tokens de `theme.js`. Para colorear cursos/eventos usar
+  `colorFromString(texto)` de `theme.js` (asigna un color consistente de
+  `palette` al mismo texto), no colores fijos, salvo que el color tenga un
+  significado semántico (rojo = urgente/conflicto, verde = éxito).
 - **El selector de fecha/hora al programar un bloque de trabajo NUNCA debe
   sugerir una hora cercana a la fecha límite de la tarea.** Ya se intentó
   (`due_at - duración`) y el usuario pidió quitarlo explícitamente — el
@@ -82,5 +108,28 @@ usarse.
 Fase 4 (automatización n8n) parcial: dos workflows en `automation/` — avisar
 por email tareas nuevas del `/todo`, y avisar por email cuando cambian las
 notas (promedio simple). Ideas de Fase 4 sin construir: descarga automática
-de material nuevo, feed de anuncios. Fase 5 (Notion/Obsidian/finanzas) sigue
-siendo exploración, no trabajo pendiente activo — ver "Alcance" arriba.
+de material nuevo, feed de anuncios.
+
+Rediseño visual (oscuro, "futurista", `expo-linear-gradient`) completado —
+ver `docs/decisiones.md`. Rediseño de navegación completado: menú lateral
+(Drawer) en vez de pestañas inferiores, con Tareas/Cursos/Horario/
+Calendario/Finanzas y "Cerrar sesión" al pie del menú. Horario de clases
+nuevo (`scheduleDb.js` + `ScheduleScreen.js`): registro manual lunes-sábado,
+cada clase se puede agendar como evento semanal recurrente en el Calendario.
+Fase 5 (Finanzas personales) completa en su versión manual: esquema SQLite
+(`financeDb.js`) y pantalla `FinanceScreen.js` — registro manual, resumen
+del mes, presupuestos con barra de progreso, tarjeta de crédito. Fase 6
+(Notion/Obsidian) sigue siendo exploración, no trabajo pendiente activo —
+ver "Alcance" arriba.
+
+**Lección de esta sesión, para no repetir:** ante un bug visual reportado
+sin poder reproducirlo leyendo el código, pedir una captura de pantalla
+antes de proponer un fix. Ver `docs/decisiones.md` para el detalle completo.
+
+**`DateTimePicker` nativo de iOS (`display="inline"`/`"spinner"`) no se
+estira con `style.width`** — su dibujo tiene tamaño fijo/intrínseco y deja
+el resto del marco vacío en vez de crecer o centrarse. La forma correcta de
+evitar espacio muerto a un lado es NO ponerle `width` y usar
+`alignSelf: 'center'` en su lugar (ver `schedulePicker.js`, `FinanceScreen.js`,
+`ScheduleScreen.js`). No reintroducir un `width` fijo/calculado en estos
+pickers.

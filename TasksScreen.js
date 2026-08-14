@@ -9,7 +9,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, RefreshControl, ActivityIndicator } from 'react-native';
-import { getTodoItems, clearCredentials } from './canvasApi';
+import { getTodoItems } from './canvasApi';
 import { SchedulePickerModal } from './schedulePicker';
 import { useWorkBlockScheduler } from './useWorkBlockScheduler';
 import { useAssignmentSubmission } from './useAssignmentSubmission';
@@ -20,7 +20,7 @@ function isUrgent(dueAt) {
   return new Date(dueAt).getTime() - Date.now() < 1000 * 60 * 60 * 24;
 }
 
-export default function TasksScreen({ onLogout }) {
+export default function TasksScreen() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -46,11 +46,6 @@ export default function TasksScreen({ onLogout }) {
   const scheduler = useWorkBlockScheduler();
   const submission = useAssignmentSubmission(load);
 
-  async function handleLogout() {
-    await clearCredentials();
-    onLogout();
-  }
-
   if (loading) {
     return (
       <View style={styles.center}>
@@ -61,11 +56,6 @@ export default function TasksScreen({ onLogout }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={typography.screenTitle}>Tus tareas</Text>
-        <AppButton title="Cerrar sesión" onPress={handleLogout} variant="plain" />
-      </View>
-
       {error && <Text style={styles.error}>{error}</Text>}
 
       <FlatList
@@ -145,15 +135,8 @@ export default function TasksScreen({ onLogout }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, paddingTop: 50 },
+  container: { flex: 1, backgroundColor: colors.background, paddingTop: spacing.md },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
-  },
   error: { color: colors.danger, paddingHorizontal: spacing.lg, marginBottom: spacing.sm },
   listContent: { padding: spacing.lg, gap: spacing.md },
   empty: { alignItems: 'center', paddingTop: 64, gap: spacing.sm },

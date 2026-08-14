@@ -12,9 +12,10 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { saveCredentials } from './canvasApi';
 import AppButton from './AppButton';
-import { colors, radius, spacing } from './theme';
+import { colors, radius, spacing, gradients } from './theme';
 
 export default function LoginScreen({ onSaved }) {
   const [baseUrl, setBaseUrl] = useState('https://umb.instructure.com');
@@ -44,9 +45,9 @@ export default function LoginScreen({ onSaved }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <View style={styles.badge}>
+        <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.badge}>
           <Text style={styles.badgeIcon}>📋</Text>
-        </View>
+        </LinearGradient>
         <Text style={styles.title}>Canvas Dashboard</Text>
         <Text style={styles.subtitle}>Conecta con Canvas para ver tus tareas pendientes</Text>
 
@@ -107,7 +108,6 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 16,
-    backgroundColor: '#5856d6',
     alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
