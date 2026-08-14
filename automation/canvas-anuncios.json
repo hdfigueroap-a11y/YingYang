@@ -1,0 +1,160 @@
+{
+  "name": "Canvas - Anuncios nuevos",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 9,
+              "triggerAtMinute": 30
+            }
+          ]
+        }
+      },
+      "id": "trigger",
+      "name": "Cada día 9:30am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "canvas_base_url",
+              "name": "canvas_base_url",
+              "value": "https://umb.instructure.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "config",
+      "name": "Configuración",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.canvas_base_url }}/api/v1/users/self/activity_stream?only_active_courses=true&per_page=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "http_stream",
+      "name": "Actividad reciente",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REEMPLAZAR",
+          "name": "Canvas API Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const items = $input.all().map(i => i.json);\nconst staticData = $getWorkflowStaticData('global');\nconst previousIds = staticData.seenAnnouncementIds || [];\n\nconst announcements = items.filter(item => item.type === 'Announcement');\nconst currentIds = announcements.map(a => a.id).filter(id => id !== undefined && id !== null);\n\nconst newItems = announcements.filter(\n  (a) => a.id !== undefined && a.id !== null && !previousIds.includes(a.id)\n);\n\nstaticData.seenAnnouncementIds = currentIds;\n\nif (newItems.length === 0) {\n  return [];\n}\n\nconst lines = newItems.map((a) => {\n  const title = a.title || 'Anuncio sin título';\n  const course = a.course_id ? ` (curso ${a.course_id})` : '';\n  const link = a.html_url ? `\\n  ${a.html_url}` : '';\n  return `- ${title}${course}${link}`;\n}).join('\\n');\n\nreturn [{\n  json: {\n    subject: `Canvas: ${newItems.length} anuncio(s) nuevo(s)`,\n    text: `Tienes ${newItems.length} anuncio(s) nuevo(s):\\n\\n${lines}`,\n  }\n}];"
+      },
+      "id": "diff",
+      "name": "Detectar anuncios nuevos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "REEMPLAZAR@ejemplo.com",
+        "toEmail": "REEMPLAZAR@ejemplo.com",
+        "subject": "={{ $json.subject }}",
+        "text": "={{ $json.text }}",
+        "options": {}
+      },
+      "id": "email",
+      "name": "Enviar email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1120,
+        300
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "REEMPLAZAR",
+          "name": "SMTP Canvas Dashboard"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Cada día 9:30am": {
+      "main": [
+        [
+          {
+            "node": "Configuración",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuración": {
+      "main": [
+        [
+          {
+            "node": "Actividad reciente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actividad reciente": {
+      "main": [
+        [
+          {
+            "node": "Detectar anuncios nuevos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detectar anuncios nuevos": {
+      "main": [
+        [
+          {
+            "node": "Enviar email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

@@ -16,10 +16,23 @@ novedades en Canvas. Corresponden a la Fase 4 del roadmap (ver
   créditos) — Canvas no expone créditos por curso de forma genérica. Si
   quieres pesarlo, hay un comentario en el nodo "Calcular promedio" con cómo
   hacerlo a mano.
+- **`canvas-anuncios.json`** — todos los días a las 9:30am, revisa el feed de
+  actividad reciente de Canvas (`GET /users/self/activity_stream`, que cubre
+  todos tus cursos activos en una sola llamada) y te manda un email solo con
+  los anuncios nuevos (filtra el resto de tipos de actividad — discusiones,
+  calificaciones, etc.).
 
-Ambos guardan su "última corrida" en el *workflow static data* de n8n (no en
-ningún archivo ni base de datos externa) — es lo que les permite avisar solo
-cuando hay algo nuevo, en vez de mandar el mismo email todos los días.
+Los tres guardan su "última corrida" en el *workflow static data* de n8n
+(no en ningún archivo ni base de datos externa) — es lo que les permite
+avisar solo cuando hay algo nuevo, en vez de mandar el mismo email todos los
+días.
+
+> **Descartado:** un workflow de "material nuevo" (`GET /courses/:id/files`
+> por cada curso) se construyó y probó, pero la cuenta de Canvas del usuario
+> no tiene permiso para listar archivos por API (típico en cuentas de
+> estudiante, según cómo cada profesor configure el curso) — Canvas devuelve
+> error de permisos en vez de la lista. Se descartó en vez de dejarlo
+> instalado sin funcionar. Ver `docs/decisiones.md`.
 
 ## Seguridad — antes de importar
 
@@ -48,13 +61,13 @@ login normal).
      (Cuenta de Google → Seguridad → Verificación en dos pasos → Contraseñas
      de aplicaciones — requiere tener 2FA activado).
 3. **Importar los workflows**: en n8n, Workflows → Import from File → elegí
-   `canvas-tareas-nuevas.json` (repetí con el otro archivo).
+   `canvas-tareas-nuevas.json` (repetí con los otros dos archivos).
 4. **Por cada workflow importado**:
    - Abrí el nodo **"Configuración"** y cambiá `canvas_base_url` por la URL
      real de tu institución (ej. `https://umb.instructure.com`).
-   - Abrí el nodo HTTP Request (`GET /users/self/todo` o `GET /courses...`) y
-     volvé a seleccionar la credencial **Canvas API Token** — el import no
-     trae credenciales con el secreto, solo el nombre.
+   - Abrí el nodo HTTP Request y volvé a seleccionar la credencial
+     **Canvas API Token** — el import no trae credenciales con el secreto,
+     solo el nombre.
    - Abrí el nodo **"Enviar email"**: seleccioná la credencial **SMTP Canvas
      Dashboard**, y reemplazá `REEMPLAZAR@ejemplo.com` en `fromEmail` y
      `toEmail` por tu correo real (puede ser el mismo en ambos campos).

@@ -40,7 +40,7 @@ pendientes del to-do list). Usa los mismos hooks que `TasksScreen.js`
 (`useWorkBlockScheduler.js`, `useAssignmentSubmission.js`), evitando duplicar
 la lógica de programar bloque / entregar tarea.
 
-## Fase 4 — Automatización (n8n) — Parcial
+## Fase 4 — Automatización (n8n) ✅ Completada
 El usuario ya tiene n8n corriendo (self-hosted/cloud, fuera de este repo).
 Workflows en `automation/` (ver `automation/README.md` para instalación):
 1. ✅ **Cron diario que jale tareas de Canvas y notifique por email** —
@@ -52,10 +52,17 @@ Workflows en `automation/` (ver `automation/README.md` para instalación):
    Es un promedio **simple**, no ponderado por créditos (Canvas no expone esa
    información de forma genérica); usa `GET /courses?include[]=total_scores`
    en vez de `/users/self/grades`
-4. **Pendiente:** descarga automática de material nuevo de cursos
-5. **Pendiente:** feed unificado de anuncios de todos los cursos
+4. ❌ **Descartado: aviso de material nuevo.** Se construyó y probó
+   (`GET /courses/:id/files` por curso), pero la cuenta de Canvas del
+   usuario no tiene permiso para listar archivos por API — Canvas devuelve
+   error de permisos en cuentas de estudiante según cómo el profesor
+   configure el curso. No es arreglable desde este lado; se quitó del
+   repo. Ver `docs/decisiones.md`.
+5. ✅ **Feed de anuncios** — `automation/canvas-anuncios.json`. Usa
+   `GET /users/self/activity_stream` (cubre todos los cursos activos en una
+   sola llamada, sin recorrer curso por curso) filtrando solo anuncios.
 
-Se descartó Telegram como canal (el usuario no puede usarlo) — ambos
+Se descartó Telegram como canal (el usuario no puede usarlo) — los cuatro
 workflows envían por email vía el nodo SMTP de n8n.
 
 ## Rediseño de navegación — ✅ Completado

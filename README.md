@@ -43,8 +43,8 @@ Fases 1, 2 y 3 completadas — incluye entrega de tareas por texto, URL o
 archivo, y Horario de clases manual (lunes a sábado, con opción de agendar
 cada clase como evento semanal recurrente). Además, pantalla "Cursos" (no
 estaba en el roadmap original) para explorar todas las tareas de un curso,
-no solo las pendientes. Fase 4 (automatización) parcial — ver
-`automation/README.md`. Rediseño visual oscuro/"futurista" completado, y
+no solo las pendientes. Fase 4 (automatización, tres workflows de n8n)
+completa — ver `automation/README.md`. Rediseño visual oscuro/"futurista" completado, y
 navegación por menú lateral (☰) en vez de pestañas inferiores. Fase 5
 (Finanzas personales) completa en su versión manual: registro de
 movimientos, resumen del mes, presupuestos por categoría y tarjeta de

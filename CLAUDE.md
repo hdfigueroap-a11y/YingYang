@@ -105,10 +105,13 @@ que lista cursos activos y todas las tareas de cada uno (no solo las
 pendientes), conectando `getCourses()`/`getAssignments()` que existían sin
 usarse.
 
-Fase 4 (automatización n8n) parcial: dos workflows en `automation/` — avisar
-por email tareas nuevas del `/todo`, y avisar por email cuando cambian las
-notas (promedio simple). Ideas de Fase 4 sin construir: descarga automática
-de material nuevo, feed de anuncios.
+Fase 4 (automatización n8n) completa: tres workflows en `automation/` —
+avisar por email tareas nuevas del `/todo`, notas (promedio simple), y feed
+de anuncios (`activity_stream`, cubre todos los cursos en una llamada). Se
+descartó un cuarto workflow de "material nuevo" (`GET /courses/:id/files`
+por curso): la cuenta del usuario no tiene permiso de Canvas para listar
+archivos por API — no reintentar este enfoque a menos que el usuario
+confirme que el permiso cambió. Ver `docs/decisiones.md`.
 
 Rediseño visual (oscuro, "futurista", `expo-linear-gradient`) completado —
 ver `docs/decisiones.md`. Rediseño de navegación completado: menú lateral

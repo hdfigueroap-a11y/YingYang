@@ -239,6 +239,27 @@ semanal recurrente del Calendario del iPhone (`createWeeklyRecurringEvent`
 en `deviceCalendar.js`), reusando el permiso de Calendario que la app ya
 pide para los bloques de trabajo.
 
+**Fase 4 completa: feed de anuncios; material nuevo descartado.**
+`automation/canvas-anuncios.json` usa `GET /users/self/activity_stream`
+(feed unificado de actividad de Canvas) — cubre todos los cursos activos en
+una sola llamada, filtrando el tipo `Announcement` del resto de eventos
+(discusiones, calificaciones, etc.). Se validó simulando varias corridas
+con datos de prueba (`node -e` sobre el código del nodo Code) antes de
+darlo por bueno, mismo criterio que los workflows anteriores. Probado por
+el usuario, funciona.
+
+Se había construido también `canvas-material-nuevo.json` (recorre cada
+curso activo con `GET /courses` y sus archivos con `GET
+/courses/:id/files`, avisando por email de los nuevos con link directo,
+sin descargar nada — la descarga automática real se había descartado antes
+por requerir un destino de almacenamiento externo sin confirmar). El
+usuario lo probó y **Canvas le devuelve error de permisos al listar
+archivos por API** — su cuenta (de estudiante) no tiene ese permiso
+habilitado, algo que cada profesor configura por curso y que no depende de
+la app ni del workflow. No hay forma de arreglarlo desde este lado, así que
+se descartó el workflow (se borró de `automation/`) en vez de dejarlo
+instalable pero roto.
+
 **Herramientas de IA gratuitas complementarias (fuera de este repo).**
 Evaluadas como apoyo general de desarrollo, no específicas de este proyecto:
 GitHub Copilot Free (vía GitHub Student Developer Pack), Windsurf, Aider (agente
