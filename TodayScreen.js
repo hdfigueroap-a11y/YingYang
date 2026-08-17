@@ -8,6 +8,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { getTodoItems } from './canvasApi';
 import { getClasses } from './scheduleDb';
 import { listEventsForDay } from './deviceCalendar';
@@ -154,7 +155,7 @@ export default function TodayScreen() {
 
         {nothingToday && !error ? (
           <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>🌤️</Text>
+            <Ionicons name="partly-sunny-outline" size={48} color={colors.textSecondary} />
             <Text style={styles.emptyTitle}>Nada urgente hoy</Text>
             <Text style={styles.emptySubtitle}>Sin tareas urgentes, clases ni eventos</Text>
           </View>
@@ -237,7 +238,6 @@ const styles = StyleSheet.create({
   dateLabel: { fontSize: 20, fontWeight: '700', color: colors.text, letterSpacing: -0.3 },
   error: { color: colors.danger },
   empty: { alignItems: 'center', paddingTop: 64, gap: spacing.sm },
-  emptyEmoji: { fontSize: 48 },
   emptyTitle: { fontSize: 17, fontWeight: '600', color: colors.text },
   emptySubtitle: { fontSize: 14, color: colors.textSecondary },
   section: { gap: spacing.sm },

@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, Alert, ActivityIndicator, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { openAndroidPicker, SchedulePickerModal } from './schedulePicker';
 import {
   requestPermission,
@@ -15,16 +16,17 @@ import AppButton from './AppButton';
 import { colors, radius, spacing, cardShadow, typography, colorFromString, palette } from './theme';
 
 // Plantillas rápidas para los bloques que definimos: sueño, lectura, gym, trabajo.
-// Cada uno con su propio color e ícono para diferenciarlos de un vistazo,
-// tomado de `palette` (theme.js) en vez de repetir el hex a mano. "Trabajo"
-// usa colors.danger/colors.accent (no la paleta categórica) porque ahí el
-// color SÍ es semántico — difícil=urgente, fácil=acción por defecto.
+// Cada uno con su propio color e ícono (Ionicons — ver App.js para por qué
+// se prefieren sobre emoji) para diferenciarlos de un vistazo, tomado de
+// `palette` (theme.js) en vez de repetir el hex a mano. "Trabajo" usa
+// colors.danger/colors.accent (no la paleta categórica) porque ahí el color
+// SÍ es semántico — difícil=urgente, fácil=acción por defecto.
 const QUICK_BLOCKS = [
-  { title: 'Sueño', durationMin: 480, icon: '😴', color: palette[5] }, // violeta, 8h
-  { title: 'Lectura', durationMin: 60, icon: '📖', color: palette[1] }, // naranja quemado
-  { title: 'Gimnasio', durationMin: 60, icon: '🏋️', color: palette[2] }, // verde
-  { title: 'Trabajo — tarea difícil', durationMin: 120, icon: '🔴', color: colors.danger },
-  { title: 'Trabajo — tarea fácil', durationMin: 60, icon: '🔵', color: colors.accent },
+  { title: 'Sueño', durationMin: 480, icon: 'moon-outline', color: palette[5] }, // violeta, 8h
+  { title: 'Lectura', durationMin: 60, icon: 'reader-outline', color: palette[1] }, // naranja quemado
+  { title: 'Gimnasio', durationMin: 60, icon: 'barbell-outline', color: palette[2] }, // verde
+  { title: 'Trabajo — tarea difícil', durationMin: 120, icon: 'flame-outline', color: colors.danger },
+  { title: 'Trabajo — tarea fácil', durationMin: 60, icon: 'flash-outline', color: colors.accent },
 ];
 
 function formatDuration(durationMin) {
@@ -137,7 +139,7 @@ export default function CalendarScreen() {
     return (
       <View style={styles.center}>
         <View style={styles.permissionBadge}>
-          <Text style={styles.permissionIcon}>📅</Text>
+          <Ionicons name="calendar-outline" size={30} color={colors.accent} />
         </View>
         <Text style={styles.permissionTitle}>Acceso al Calendario</Text>
         <Text style={styles.permissionSubtitle}>
@@ -168,7 +170,7 @@ export default function CalendarScreen() {
               style={[styles.blockRow, i < QUICK_BLOCKS.length - 1 && styles.rowDivider]}
             >
               <View style={[styles.blockIcon, { backgroundColor: `${block.color}22` }]}>
-                <Text style={styles.blockIconText}>{block.icon}</Text>
+                <Ionicons name={block.icon} size={17} color={block.color} />
               </View>
               <View style={styles.blockInfo}>
                 <Text style={styles.blockLabel}>{block.title}</Text>
@@ -243,7 +245,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     ...cardShadow,
   },
-  permissionIcon: { fontSize: 30 },
   permissionTitle: { fontSize: 20, fontWeight: '700', color: colors.text, marginBottom: spacing.sm },
   permissionSubtitle: {
     fontSize: 14.5,
@@ -281,7 +282,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: spacing.md,
   },
-  blockIconText: { fontSize: 16 },
   blockInfo: { flex: 1, marginRight: spacing.sm },
   blockLabel: { fontSize: 15, fontWeight: '500', color: colors.text },
   blockDuration: { fontSize: 13, fontWeight: '600', marginTop: 1 },

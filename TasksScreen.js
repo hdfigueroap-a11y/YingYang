@@ -9,6 +9,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, RefreshControl, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { getTodoItems } from './canvasApi';
 import { SchedulePickerModal } from './schedulePicker';
 import { useWorkBlockScheduler } from './useWorkBlockScheduler';
@@ -75,7 +76,7 @@ export default function TasksScreen() {
         ListEmptyComponent={
           !error && (
             <View style={styles.empty}>
-              <Text style={styles.emptyEmoji}>🎉</Text>
+              <Ionicons name="checkmark-done-circle-outline" size={48} color={colors.success} />
               <Text style={styles.emptyTitle}>No tienes tareas pendientes</Text>
               <Text style={styles.emptySubtitle}>Disfruta tu tiempo libre</Text>
             </View>
@@ -140,7 +141,6 @@ const styles = StyleSheet.create({
   error: { color: colors.danger, paddingHorizontal: spacing.lg, marginBottom: spacing.sm },
   listContent: { padding: spacing.lg, gap: spacing.md },
   empty: { alignItems: 'center', paddingTop: 64, gap: spacing.sm },
-  emptyEmoji: { fontSize: 48 },
   emptyTitle: { fontSize: 17, fontWeight: '600', color: colors.text },
   emptySubtitle: { fontSize: 14, color: colors.textSecondary },
   card: {

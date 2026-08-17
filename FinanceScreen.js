@@ -19,6 +19,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, Alert, ActivityIndicator, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import {
   initDatabase,
   getMonthSummary,
@@ -183,7 +184,12 @@ export default function FinanceScreen() {
             <Text style={[styles.summaryValue, { color: colors.success }]}>{formatMoney(summary.income)}</Text>
             {incomeChange !== null && (
               <Text style={[styles.summaryDelta, { color: incomeChange >= 0 ? colors.success : colors.textSecondary }]}>
-                {incomeChange >= 0 ? '▲' : '▼'} {Math.abs(incomeChange).toFixed(0)}% vs. mes pasado
+                <Ionicons
+                  name={incomeChange >= 0 ? 'caret-up' : 'caret-down'}
+                  size={11}
+                  color={incomeChange >= 0 ? colors.success : colors.textSecondary}
+                />{' '}
+                {Math.abs(incomeChange).toFixed(0)}% vs. mes pasado
               </Text>
             )}
           </View>
@@ -192,7 +198,12 @@ export default function FinanceScreen() {
             <Text style={[styles.summaryValue, { color: colors.danger }]}>{formatMoney(summary.expense)}</Text>
             {expenseChange !== null && (
               <Text style={[styles.summaryDelta, { color: expenseChange > 0 ? colors.warning : colors.success }]}>
-                {expenseChange >= 0 ? '▲' : '▼'} {Math.abs(expenseChange).toFixed(0)}% vs. mes pasado
+                <Ionicons
+                  name={expenseChange >= 0 ? 'caret-up' : 'caret-down'}
+                  size={11}
+                  color={expenseChange > 0 ? colors.warning : colors.success}
+                />{' '}
+                {Math.abs(expenseChange).toFixed(0)}% vs. mes pasado
               </Text>
             )}
           </View>
