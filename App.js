@@ -1,8 +1,8 @@
 // App.js
 // Punto de entrada: login de Canvas, y luego un menú lateral (Drawer,
-// abierto desde el ícono ☰ arriba a la izquierda) con Tareas, Cursos,
-// Horario, Calendario y Finanzas. El botón "Cerrar sesión" vive al final
-// del propio menú, no en cada pantalla.
+// abierto desde el ícono ☰ arriba a la izquierda) con Hoy, Tareas, Cursos,
+// Horario, Calendario, Finanzas y Ajustes. El botón "Cerrar sesión" vive al
+// final del propio menú, no en cada pantalla.
 //
 // react-native-gesture-handler debe importarse primero que cualquier otra
 // cosa (requisito de la librería, no orden arbitrario) y toda la app debe
@@ -23,25 +23,30 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { getCredentials, clearCredentials } from './canvasApi';
 import { colors, spacing } from './theme';
+import ErrorBoundary from './ErrorBoundary';
 import LoginScreen from './LoginScreen';
+import TodayScreen from './TodayScreen';
 import TasksScreen from './TasksScreen';
 import CoursesScreen from './CoursesScreen';
 import ScheduleScreen from './ScheduleScreen';
 import CalendarScreen from './CalendarScreen';
 import FinanceScreen from './FinanceScreen';
+import SettingsScreen from './SettingsScreen';
 import AppButton from './AppButton';
 
 const Drawer = createDrawerNavigator();
 
 // Íconos simples por texto (sin librería de íconos) y un color de identidad
 // por sección — cada una conserva el acento que ya tenía como pestaña.
-const SCREEN_ICONS = { Tareas: '📝', Cursos: '📚', Horario: '🎓', Calendario: '📅', Finanzas: '💰' };
+const SCREEN_ICONS = { Hoy: '🌤️', Tareas: '📝', Cursos: '📚', Horario: '🎓', Calendario: '📅', Finanzas: '💰', Ajustes: '⚙️' };
 const SCREEN_COLORS = {
+  Hoy: '#0891A6',
   Tareas: colors.accent,
-  Cursos: '#C77DFF',
-  Horario: '#FF2DA0',
-  Calendario: '#FF9F1C',
+  Cursos: '#8B3DFF',
+  Horario: '#E11D74',
+  Calendario: '#D9720A',
   Finanzas: colors.success,
+  Ajustes: '#E11D48',
 };
 
 function CustomDrawerContent({ onLogout, ...props }) {
@@ -83,33 +88,38 @@ export default function App() {
 
   if (checking) {
     return (
-      <GestureHandlerRootView style={styles.flex}>
-        <SafeAreaProvider>
-          <View style={styles.center}>
-            <ActivityIndicator size="large" />
-          </View>
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
+      <ErrorBoundary>
+        <GestureHandlerRootView style={styles.flex}>
+          <SafeAreaProvider>
+            <View style={styles.center}>
+              <ActivityIndicator size="large" />
+            </View>
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      </ErrorBoundary>
     );
   }
 
   if (!hasCredentials) {
     return (
-      <GestureHandlerRootView style={styles.flex}>
-        <SafeAreaProvider>
-          <StatusBar style="light" />
-          <LoginScreen onSaved={() => setHasCredentials(true)} />
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
+      <ErrorBoundary>
+        <GestureHandlerRootView style={styles.flex}>
+          <SafeAreaProvider>
+            <StatusBar style="light" />
+            <LoginScreen onSaved={() => setHasCredentials(true)} />
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      </ErrorBoundary>
     );
   }
 
   return (
-    <GestureHandlerRootView style={styles.flex}>
-      <SafeAreaProvider>
-        <NavigationContainer>
-          <StatusBar style="light" />
-          <Drawer.Navigator
+    <ErrorBoundary>
+      <GestureHandlerRootView style={styles.flex}>
+        <SafeAreaProvider>
+          <NavigationContainer>
+            <StatusBar style="light" />
+            <Drawer.Navigator
             drawerContent={(props) => <CustomDrawerContent {...props} onLogout={handleLogout} />}
             screenOptions={({ route }) => ({
               headerStyle: { backgroundColor: colors.surface },
@@ -126,15 +136,18 @@ export default function App() {
               ),
             })}
           >
+            <Drawer.Screen name="Hoy" component={TodayScreen} />
             <Drawer.Screen name="Tareas" component={TasksScreen} />
             <Drawer.Screen name="Cursos" component={CoursesScreen} />
             <Drawer.Screen name="Horario" component={ScheduleScreen} />
             <Drawer.Screen name="Calendario" component={CalendarScreen} />
             <Drawer.Screen name="Finanzas" component={FinanceScreen} />
+            <Drawer.Screen name="Ajustes" component={SettingsScreen} />
           </Drawer.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>
     </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }
 

@@ -17,6 +17,10 @@ indique lo contrario.
 - `expo-calendar` para el calendario — **no** agregar Google Calendar API ni
   Microsoft Graph, fue una decisión explícita descartar ambos (ver
   `docs/calendario.md`)
+- `expo-file-system` (v19+, SDK 54) usa la API nueva basada en clases
+  `File`/`Directory`/`Paths` (`backup.js`) — **no** usar la API legacy
+  (`FileSystem.documentDirectory`, `writeAsStringAsync`, etc., disponible
+  solo vía `expo-file-system/legacy`) en código nuevo.
 - Navegación: `@react-navigation/drawer` **v7** (menú lateral ☰, no pestañas
   inferiores) — pedido explícito del usuario, elegido sobre un menú a la
   medida sin dependencias nuevas. **No degradar a v6**: su Drawer usa
@@ -79,7 +83,13 @@ indique lo contrario.
   de `theme.js`) y los tokens de `theme.js`. Para colorear cursos/eventos usar
   `colorFromString(texto)` de `theme.js` (asigna un color consistente de
   `palette` al mismo texto), no colores fijos, salvo que el color tenga un
-  significado semántico (rojo = urgente/conflicto, verde = éxito).
+  significado semántico (rojo = urgente/conflicto, verde = éxito, ámbar =
+  aviso/`colors.warning`) — un color de estado nunca sale de `palette`, y
+  viceversa (ver `docs/decisiones.md`, la paleta se reconstruyó completa una
+  vez ya por mezclar ambos roles). `palette` tiene 7 colores, validados con
+  la herramienta de paletas categóricas del skill de dataviz contra el fondo
+  oscuro de la app — si se vuelve a tocar, revalidar con esa misma
+  herramienta antes de asumir que un color nuevo "se ve bien".
 - **El selector de fecha/hora al programar un bloque de trabajo NUNCA debe
   sugerir una hora cercana a la fecha límite de la tarea.** Ya se intentó
   (`due_at - duración`) y el usuario pidió quitarlo explícitamente — el
@@ -121,7 +131,18 @@ nuevo (`scheduleDb.js` + `ScheduleScreen.js`): registro manual lunes-sábado,
 cada clase se puede agendar como evento semanal recurrente en el Calendario.
 Fase 5 (Finanzas personales) completa en su versión manual: esquema SQLite
 (`financeDb.js`) y pantalla `FinanceScreen.js` — registro manual, resumen
-del mes, presupuestos con barra de progreso, tarjeta de crédito. Fase 6
+del mes, gráfico de "Gastos por categoría", presupuestos con barra de
+progreso, tarjeta de crédito. Extra no planeado: pantalla `TodayScreen.js`
+("Hoy", primera sección del menú) con tareas urgentes + clases de hoy +
+eventos de hoy en un solo lugar; notificaciones locales
+(`notifications.js`, `expo-notifications`, sin backend) 10 min antes de una
+clase/evento, 1h antes del vencimiento de una tarea urgente, 1 día antes
+del pago de una tarjeta; pantalla `SettingsScreen.js` ("Ajustes", última
+sección del menú) con exportar/restaurar respaldo de Finanzas y Horario
+(`backup.js`, `expo-file-system` API nueva + `expo-sharing` +
+`expo-document-picker`) — restaurar reemplaza todos los datos actuales, es
+destructivo a propósito, con confirmación explícita antes. Paleta de
+colores reconstruida (7 tonos validados, ver `docs/decisiones.md`). Fase 6
 (Notion/Obsidian) sigue siendo exploración, no trabajo pendiente activo —
 ver "Alcance" arriba.
 

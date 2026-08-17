@@ -25,6 +25,7 @@
 // getAllAsync), no la API legacy basada en transacciones con callbacks.
 
 import * as SQLite from 'expo-sqlite';
+import { parseIsoDate } from './formatters';
 
 const DB_NAME = 'finanzas.db';
 
@@ -225,6 +226,21 @@ export async function getMonthSummary(month) {
   return { income, expense, balance: income - expense };
 }
 
+// Gasto del mes agrupado por categoría, de mayor a menor — para el
+// gráfico de barras de "Gastos por categoría" en FinanceScreen.js.
+export async function getExpenseByCategory(month) {
+  const db = await getDb();
+  return db.getAllAsync(
+    `SELECT c.name as category_name, SUM(t.amount) as total
+     FROM transactions t
+     JOIN categories c ON c.id = t.category_id
+     WHERE c.kind = 'gasto' AND t.date LIKE ?
+     GROUP BY c.id
+     ORDER BY total DESC`,
+    `${month}-%`
+  );
+}
+
 // --- Presupuestos ---
 
 // Crea o reemplaza el presupuesto de una categoría para un mes dado.
@@ -267,19 +283,24 @@ export async function getBudgetsForMonth(month) {
 // se recalcula cada vez a partir de `due_day`/`cutoff_day`, para que siempre
 // refleje el corte/pago que corresponde a la fecha de hoy.
 
-function toIsoDate(d) {
+// Exportadas (antes eran privadas del módulo) para poder probarlas con
+// Jest sin necesitar una conexión real a SQLite — es la única lógica de
+// la app donde un bug silencioso cuesta dinero real, no solo una UI fea.
+// Ver financeDb.test.js.
+
+export function toIsoDate(d) {
   return d.toISOString().slice(0, 10);
 }
 
 // Corte más reciente que ya pasó (o el de hoy, si hoy es el día de corte).
-function lastCutoffDate(cutoffDay, from = new Date()) {
+export function lastCutoffDate(cutoffDay, from = new Date()) {
   const y = from.getFullYear();
   const m = from.getMonth();
   return from.getDate() >= cutoffDay ? new Date(y, m, cutoffDay) : new Date(y, m - 1, cutoffDay);
 }
 
 // Próxima fecha de pago a partir de hoy.
-function nextDueDate(dueDay, from = new Date()) {
+export function nextDueDate(dueDay, from = new Date()) {
   const y = from.getFullYear();
   const m = from.getMonth();
   return from.getDate() < dueDay ? new Date(y, m, dueDay) : new Date(y, m + 1, dueDay);
@@ -338,7 +359,13 @@ export async function getCardPurchases(accountId) {
 // null si la compra no fue a cuotas (`installments <= 1`).
 export function getInstallmentProgress(transaction, today = new Date()) {
   if (!transaction.installments || transaction.installments <= 1) return null;
-  const purchaseDate = new Date(transaction.date);
+  // `parseIsoDate`, no `new Date(transaction.date)`: `transaction.date` es
+  // 'YYYY-MM-DD', y `new Date('YYYY-MM-DD')` se interpreta como UTC — en
+  // Colombia (UTC-5) eso corre la fecha un día hacia atrás y puede
+  // adelantar o atrasar en 1 el número de cuotas ya "cobradas" cerca de un
+  // límite de mes. Mismo bug que `formatters.js` ya documenta y evita en
+  // el resto de la app.
+  const purchaseDate = parseIsoDate(transaction.date);
   const monthsElapsed =
     (today.getFullYear() - purchaseDate.getFullYear()) * 12 +
     (today.getMonth() - purchaseDate.getMonth()) +
@@ -350,4 +377,65 @@ export function getInstallmentProgress(transaction, today = new Date()) {
     installmentAmount: transaction.amount / transaction.installments,
     total: transaction.installments,
   };
+}
+
+// --- Respaldo (backup.js) ---
+// Se guardan/restauran los `id` tal cual (no se dejan re-asignar por
+// autoincrement) para que `transactions.category_id`/`account_id` y
+// `budgets.category_id` sigan apuntando a la fila correcta después de
+// restaurar.
+
+export async function exportAllData() {
+  const db = await getDb();
+  const [accounts, categories, transactions, budgets] = await Promise.all([
+    db.getAllAsync('SELECT * FROM accounts'),
+    db.getAllAsync('SELECT * FROM categories'),
+    db.getAllAsync('SELECT * FROM transactions'),
+    db.getAllAsync('SELECT * FROM budgets'),
+  ]);
+  return { accounts, categories, transactions, budgets };
+}
+
+// Reemplaza TODO lo que haya en las 4 tablas por lo que venga en `data` —
+// destructivo a propósito, es una restauración de respaldo, no un merge.
+export async function importAllData(data) {
+  const db = await getDb();
+  await db.execAsync('DELETE FROM budgets; DELETE FROM transactions; DELETE FROM categories; DELETE FROM accounts;');
+
+  for (const a of data.accounts || []) {
+    await db.runAsync(
+      'INSERT INTO accounts (id, name, type, credit_limit, cutoff_day, due_day) VALUES (?, ?, ?, ?, ?, ?)',
+      a.id,
+      a.name,
+      a.type,
+      a.credit_limit ?? null,
+      a.cutoff_day ?? null,
+      a.due_day ?? null
+    );
+  }
+  for (const c of data.categories || []) {
+    await db.runAsync('INSERT INTO categories (id, name, kind) VALUES (?, ?, ?)', c.id, c.name, c.kind);
+  }
+  for (const t of data.transactions || []) {
+    await db.runAsync(
+      'INSERT INTO transactions (id, amount, date, note, installments, account_id, category_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      t.id,
+      t.amount,
+      t.date,
+      t.note ?? null,
+      t.installments ?? 1,
+      t.account_id,
+      t.category_id,
+      t.created_at
+    );
+  }
+  for (const b of data.budgets || []) {
+    await db.runAsync(
+      'INSERT INTO budgets (id, category_id, month, amount) VALUES (?, ?, ?, ?)',
+      b.id,
+      b.category_id,
+      b.month,
+      b.amount
+    );
+  }
 }

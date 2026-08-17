@@ -10,6 +10,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, RefreshControl, ActivityIndicator } from 'react-native';
 import { getTodoItems } from './canvasApi';
+import { saveCache, loadCache } from './canvasCache';
 import { SchedulePickerModal } from './schedulePicker';
 import { useWorkBlockScheduler } from './useWorkBlockScheduler';
 import { useAssignmentSubmission } from './useAssignmentSubmission';
@@ -25,14 +26,26 @@ export default function TasksScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [offlineNotice, setOfflineNotice] = useState(null);
 
   const load = useCallback(async () => {
     try {
       setError(null);
       const data = await getTodoItems();
       setItems(data);
+      setOfflineNotice(null);
+      saveCache('todo', data);
     } catch (err) {
-      setError(String(err.message || err));
+      // Sin conexión (típico dentro de un edificio de clases) no debe
+      // dejar la pantalla vacía si ya se tiene una respuesta buena
+      // anterior — se muestra esa, con aviso, en vez del error a secas.
+      const cached = await loadCache('todo');
+      if (cached) {
+        setItems(cached.data);
+        setOfflineNotice(`Sin conexión — mostrando datos del ${new Date(cached.cachedAt).toLocaleString('es-CO')}`);
+      } else {
+        setError(String(err.message || err));
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -57,6 +70,7 @@ export default function TasksScreen() {
   return (
     <View style={styles.container}>
       {error && <Text style={styles.error}>{error}</Text>}
+      {offlineNotice && <Text style={styles.offlineNotice}>{offlineNotice}</Text>}
 
       <FlatList
         data={items}
@@ -138,6 +152,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, paddingTop: spacing.md },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
   error: { color: colors.danger, paddingHorizontal: spacing.lg, marginBottom: spacing.sm },
+  offlineNotice: { color: colors.warning, fontSize: 12.5, paddingHorizontal: spacing.lg, marginBottom: spacing.sm },
   listContent: { padding: spacing.lg, gap: spacing.md },
   empty: { alignItems: 'center', paddingTop: 64, gap: spacing.sm },
   emptyEmoji: { fontSize: 48 },

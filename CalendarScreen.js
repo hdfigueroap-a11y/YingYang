@@ -16,12 +16,14 @@ import { colors, radius, spacing, cardShadow, typography, colorFromString } from
 
 // Plantillas rápidas para los bloques que definimos: sueño, lectura, gym, trabajo.
 // Cada uno con su propio color e ícono para diferenciarlos de un vistazo.
+// "Trabajo" usa colors.danger/colors.accent (no la paleta categórica) porque
+// ahí el color SÍ es semántico — difícil=urgente, fácil=acción por defecto.
 const QUICK_BLOCKS = [
-  { title: 'Sueño', durationMin: 480, icon: '😴', color: '#7B2FF7' }, // 8h
-  { title: 'Lectura', durationMin: 60, icon: '📖', color: '#FF9F1C' },
-  { title: 'Gimnasio', durationMin: 60, icon: '🏋️', color: '#39FF88' },
-  { title: 'Trabajo — tarea difícil', durationMin: 120, icon: '🔴', color: '#FF3B5C' },
-  { title: 'Trabajo — tarea fácil', durationMin: 60, icon: '🔵', color: '#00E5FF' },
+  { title: 'Sueño', durationMin: 480, icon: '😴', color: '#8B3DFF' }, // 8h
+  { title: 'Lectura', durationMin: 60, icon: '📖', color: '#D9720A' },
+  { title: 'Gimnasio', durationMin: 60, icon: '🏋️', color: '#16A34A' },
+  { title: 'Trabajo — tarea difícil', durationMin: 120, icon: '🔴', color: colors.danger },
+  { title: 'Trabajo — tarea fácil', durationMin: 60, icon: '🔵', color: colors.accent },
 ];
 
 function formatDuration(durationMin) {

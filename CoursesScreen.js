@@ -12,6 +12,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { getCourses, getAssignments } from './canvasApi';
+import { saveCache, loadCache } from './canvasCache';
 import { SchedulePickerModal } from './schedulePicker';
 import { useWorkBlockScheduler } from './useWorkBlockScheduler';
 import { useAssignmentSubmission } from './useAssignmentSubmission';
@@ -22,6 +23,7 @@ export default function CoursesScreen() {
   const [courses, setCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [error, setError] = useState(null);
+  const [offlineNotice, setOfflineNotice] = useState(null);
 
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [assignments, setAssignments] = useState([]);
@@ -34,9 +36,21 @@ export default function CoursesScreen() {
     (async () => {
       try {
         setError(null);
-        setCourses(await getCourses());
+        const data = await getCourses();
+        setCourses(data);
+        setOfflineNotice(null);
+        saveCache('courses', data);
       } catch (err) {
-        setError(String(err.message || err));
+        // Mismo criterio que TasksScreen.js: sin conexión, mostrar la
+        // última lista de cursos buena conocida en vez de dejar la
+        // pantalla vacía.
+        const cached = await loadCache('courses');
+        if (cached) {
+          setCourses(cached.data);
+          setOfflineNotice(`Sin conexión — mostrando datos del ${new Date(cached.cachedAt).toLocaleString('es-CO')}`);
+        } else {
+          setError(String(err.message || err));
+        }
       } finally {
         setLoadingCourses(false);
       }
@@ -138,6 +152,7 @@ export default function CoursesScreen() {
   return (
     <View style={styles.container}>
       {error && <Text style={styles.error}>{error}</Text>}
+      {offlineNotice && <Text style={styles.offlineNotice}>{offlineNotice}</Text>}
       <FlatList
         data={courses}
         keyExtractor={(c) => String(c.id)}
@@ -170,6 +185,7 @@ const styles = StyleSheet.create({
   courseDot: { width: 12, height: 12, borderRadius: 6 },
   title: { marginBottom: 0 },
   error: { color: colors.danger, marginBottom: spacing.sm },
+  offlineNotice: { color: colors.warning, fontSize: 12.5, marginBottom: spacing.sm },
   empty: { textAlign: 'center', marginTop: 40, color: colors.textSecondary },
   spacerTop: { marginTop: spacing.xl },
   listContent: { gap: spacing.md, paddingBottom: spacing.lg },

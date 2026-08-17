@@ -19,11 +19,53 @@ mientras se construye. No requiere Mac.
 | Almacenamiento de Finanzas / Horario | `expo-sqlite` (bases de datos locales, sin sincronizar) |
 | Navegación | `@react-navigation` v7 — Drawer (menú lateral ☰, no pestañas inferiores). Requiere `react-native-gesture-handler` + `react-native-reanimated` (con `babel.config.js` propio). v6 no es viable: su Drawer usa una API de Reanimated eliminada en v3+ — ver `docs/decisiones.md` |
 | Calendario | `expo-calendar` → Calendario nativo del iPhone (EventKit) |
+| Notificaciones | `expo-notifications` — locales únicamente, sin Expo push token ni servidor |
+| Respaldo de datos | `expo-file-system` (API nueva `File`/`Paths`) + `expo-sharing` + `expo-document-picker` |
 | Tareas académicas | API REST de Canvas (token de acceso personal) |
 | Control de versiones | Git (local, opcionalmente GitHub privado) |
+| Calidad de código | ESLint 9 (`eslint-config-expo`, flat config) + Prettier (`eslint-config-prettier` desactiva el choque de reglas de estilo) — `npm run lint`, `npm run format` / `format:check`. Tests: Jest (`jest-expo`) — `npm test` / `npm run test:watch`, por ahora solo sobre la lógica de dinero de `financeDb.js` (`financeDb.test.js`) |
 | Asistente de desarrollo | Claude Code, operando directo sobre este repo |
 
 ## Módulos de la app
+
+### Utilidades compartidas
+- `formatters.js` — funciones de fecha/hora/dinero (`pad2`, `isoDate`,
+  `parseIsoDate`, `timeToHHMM`, `hhmmToDate`, `formatTimeLabel`,
+  `nextDateForWeekday`, `combineDateAndTime`, `monthKey`,
+  `previousMonthKey`, `monthLabel`, `percentChange`, `formatMoney`).
+  Antes vivían duplicadas de forma independiente dentro de
+  `FinanceScreen.js` y `ScheduleScreen.js` (mismo nombre, mismo cuerpo en
+  el caso de `pad2`) — se centralizaron en una revisión de arquitectura
+  para no repetir el patrón que ya causó bugs de UI documentados abajo.
+  Cualquier pantalla nueva que necesite formatear fecha/hora/dinero debe
+  importar de acá, no reimplementar.
+- `ErrorBoundary.js` — componente de clase de React (única forma de
+  capturar errores de render; no tiene equivalente en hooks) que envuelve
+  toda la app en `App.js`. Sin esto, un error no capturado en cualquier
+  pantalla dejaba una pantalla en blanco sin recuperación. Muestra el
+  mensaje de error y un botón "Reintentar" que limpia el estado y vuelve a
+  montar el árbol.
+
+### 0. Hoy
+- `notifications.js` — notificaciones **locales** (`expo-notifications`), sin
+  Expo push token ni servidor: `scheduleReminder(id, {title, body, date})`
+  programa (o reemplaza, si el id ya existía) un aviso para una fecha
+  futura; no hace nada si la fecha ya pasó. Sin proceso en segundo plano que
+  reprograme solo — cada pantalla que los usa los vuelve a programar cada
+  vez que se abre (ids estables por día, así reabrir el mismo día reemplaza
+  en vez de duplicar). Usado por `TodayScreen.js` (10 min antes de una clase
+  o evento, 1h antes de que venza una tarea urgente) y `FinanceScreen.js`
+  (1 día antes del pago de cada tarjeta de crédito configurada).
+- `TodayScreen.js` — primera sección del menú: resumen del día en una sola
+  pantalla — tareas urgentes de Canvas (vencen en menos de 24h o ya
+  vencidas, mismo criterio `isUrgent` que `TasksScreen.js`), clases de hoy
+  (`scheduleDb.js`, filtradas por `Date.getDay()`) y eventos de hoy del
+  Calendario del iPhone (`listEventsForDay` de `deviceCalendar.js`). Antes
+  había que revisar Tareas/Horario/Calendario por separado. Reutiliza
+  `useWorkBlockScheduler.js` para poder programar un bloque de trabajo
+  directo desde una tarea urgente, igual que en `TasksScreen.js`. Si el
+  permiso de Calendario no está dado, esa sección queda vacía en vez de
+  bloquear el resto de la pantalla.
 
 ### 1. Tareas (Canvas)
 - `LoginScreen.js` — formulario para guardar token + URL de institución
@@ -37,6 +79,10 @@ mientras se construye. No requiere Mac.
   por `TasksScreen.js` y `CoursesScreen.js`
 - `useAssignmentSubmission.js` — hook: entrega una tarea por texto o URL.
   Compartido por `TasksScreen.js` y `CoursesScreen.js`
+- `canvasCache.js` — guarda la última respuesta buena de `/users/self/todo`
+  y `/courses` (vía `expo-file-system`, `Paths.cache`) para que
+  `TasksScreen.js`/`CoursesScreen.js` no queden vacíos sin conexión —
+  muestran esos datos con un aviso en vez de un error a secas
 - Ver `canvas-api.md` para el detalle de ambas reglas
 
 ### 2. Calendario (nativo del iPhone)
@@ -55,9 +101,13 @@ mientras se construye. No requiere Mac.
   agrupadas por día. Cada clase se puede "agendar" como evento **semanal
   recurrente** en el Calendario del iPhone (`createWeeklyRecurringEvent` en
   `deviceCalendar.js`, 16 ocurrencias por defecto ≈ un semestre) — eso sí pide
-  permiso de Calendario, igual que el resto de la app.
+  permiso de Calendario, igual que el resto de la app. El modal "Nueva
+  clase" vive en `AddClassModal.js` (junto con la lista `DAYS`, que
+  `ScheduleScreen.js` reimporta) y ambos comparten estilos vía
+  `scheduleStyles.js` — antes el modal estaba definido dentro del mismo
+  archivo que la pantalla.
 
-### 4. Finanzas (Fase 5, en construcción)
+### 4. Finanzas (Fase 5, completa en su versión manual)
 - `financeDb.js` — capa de datos SQLite (`expo-sqlite`), 100% local, sin
   ningún servicio externo ni credencial (no se integra con ningún banco —
   ver `docs/decisiones.md`). Esquema: `accounts`, `categories`
@@ -70,20 +120,36 @@ mientras se construye. No requiere Mac.
   cobraron. `initDatabase()` crea las tablas y siembra cuentas/categorías
   por defecto la primera vez.
 - `FinanceScreen.js` — sección "Finanzas" del menú: selector de mes, resumen
-  (ingresos/gastos/balance), presupuestos del mes por categoría (barra de
-  progreso con aviso de color al acercarse/exceder), formulario para agregar
+  (ingresos/gastos/balance), gráfico de barras "Gastos por categoría" (la
+  categoría con más gasto marca el 100%, cada barra usa el mismo color de
+  identidad que esa categoría tiene en el resto de la app vía
+  `colorFromString`), presupuestos del mes por categoría (barra de progreso
+  con aviso de color al acercarse/exceder), formulario para agregar
   movimientos, lista de movimientos del mes, y apartado de tarjetas de
   crédito (gasto del corte, cupo disponible, próximo pago, compras,
-  configuración de cupo/corte/pago). Fase 5 completa en su versión manual —
-  ver `docs/planner.md`.
+  configuración de cupo/corte/pago). Programa una notificación local un día
+  antes del pago de cada tarjeta (`notifications.js`). Ingresos y Gastos
+  muestran un badge de comparación contra el mes anterior (▲/▼ N%, color
+  según sea favorable u no — no según el signo). Fase 5 completa en su
+  versión manual — ver `docs/planner.md`. Los 4 modales de esta pantalla
+  (`AddTransactionModal.js`, `CardPurchasesModal.js`, `ConfigCardModal.js`,
+  `BudgetModal.js`) viven en archivos propios, compartiendo estilos vía
+  `financeStyles.js` — antes los cuatro estaban definidos dentro de
+  `FinanceScreen.js`, que llegó a 904 líneas en un solo archivo (pantalla +
+  4 modales + utilidades de fecha/dinero locales). Se dividió en una
+  revisión de arquitectura para que cada modal sea legible y editable por
+  separado.
 
 ### 5. Navegación
 - `App.js` — decide entre LoginScreen (si no hay token de Canvas) o el menú
-  lateral (Drawer, ícono ☰ arriba a la izquierda) con Tareas/Cursos/
-  Horario/Calendario/Finanzas. `CustomDrawerContent` agrega el botón "Cerrar
-  sesión" al final del menú (antes vivía en `TasksScreen.js`, ahora ninguna
-  pantalla lo necesita). Cada sección conserva su ícono (emoji) y color de
-  identidad como antes en la tab bar, ahora en el ítem del menú
+  lateral (Drawer, ícono ☰ arriba a la izquierda) con Hoy/Tareas/Cursos/
+  Horario/Calendario/Finanzas/Ajustes. `CustomDrawerContent` agrega el botón
+  "Cerrar sesión" al final del menú (antes vivía en `TasksScreen.js`, ahora
+  ninguna pantalla lo necesita). Cada sección conserva su ícono (emoji) y
+  color de identidad como antes en la tab bar, ahora en el ítem del menú.
+  Los tres estados de la app (cargando, login, menú principal) están
+  envueltos en `ErrorBoundary.js`, además de `GestureHandlerRootView` y
+  `SafeAreaProvider`.
 
 ### 6. Diseño visual
 - `theme.js` — paleta de colores, radios, espaciados y tipografía compartidos
@@ -91,13 +157,18 @@ mientras se construye. No requiere Mac.
   tarjetas con borde sutil y resplandor cian, acentos en degradado
   cian → violeta), aplicados a todas las pantallas reales. Un solo lugar
   para tocar el estilo visual en vez de repetir valores sueltos por archivo.
-  Incluye `gradients` (pares de color para `expo-linear-gradient`), `palette`
-  (10 colores neón) y `colorFromString(texto)`, que asigna siempre el mismo
-  color de la paleta al mismo texto (curso, evento) — así cada curso tiene
-  una identidad de color consistente en toda la app sin guardar nada nuevo.
+  Incluye `gradients` (pares de color para `expo-linear-gradient`),
+  `colors.warning` (color de estado reservado — avisos como "presupuesto
+  acercándose al límite", nunca reusado como color de identidad), `palette`
+  (7 colores, validados con la herramienta de paletas categóricas del skill
+  de dataviz contra el fondo oscuro de la app — ver `docs/decisiones.md`) y
+  `colorFromString(texto)`, que asigna siempre el mismo color de la paleta
+  al mismo texto (curso, evento, categoría) — así cada uno tiene una
+  identidad de color consistente en toda la app sin guardar nada nuevo.
   Usado para: la franja de color a la izquierda de las tarjetas de
-  tarea/curso, el punto de color de cada evento en Calendario, y el color
-  activo de cada pestaña de la tab bar (`App.js`)
+  tarea/curso, el punto de color de cada evento en Calendario, las barras
+  del gráfico "Gastos por categoría" en Finanzas, y el color activo de cada
+  sección del menú (`App.js`)
 - `AppButton.js` — botón reutilizable (`Pressable`) con variantes `primary`
   (degradado cian → violeta vía `expo-linear-gradient`) / `secondary` (fondo
   cian translúcido con borde de resplandor) / `neutral` / `plain`, y tamaños
@@ -106,6 +177,26 @@ mientras se construye. No requiere Mac.
   todas las pantallas; **no usar `<Button>` de `react-native` directamente
   en pantallas nuevas**, usar `AppButton` para mantener el estilo
   consistente
+
+### 7. Ajustes
+- `backup.js` — respaldo/restauración de Finanzas y Horario (las únicas
+  bases de datos que solo viven en el dispositivo). `exportBackup()` junta
+  todo (`financeDb.js` + `scheduleDb.js`) en un JSON, lo escribe con la API
+  nueva de `expo-file-system` (`File`/`Paths`, no la API legacy basada en
+  `documentDirectory`/`writeAsStringAsync`) y lo comparte con
+  `expo-sharing`. `pickBackupFile()` usa `expo-document-picker` (ya
+  instalado, mismo que las entregas de tareas) para elegir un `.json` y
+  devuelve el contenido ya parseado; `restoreBackup()` reemplaza TODOS los
+  datos actuales por los del archivo (destructivo a propósito — es
+  restauración, no combinación). `financeDb.js`/`scheduleDb.js` exponen
+  `exportAllData()`/`importAllData()` y `exportAllClasses()`/
+  `importAllClasses()` para esto — conservan los `id` originales al
+  restaurar, para que las referencias entre tablas (`category_id`,
+  `account_id`) sigan siendo válidas.
+- `SettingsScreen.js` — última sección del menú: dos botones ("Exportar
+  respaldo", "Restaurar desde respaldo") con confirmación explícita antes
+  de restaurar (`Alert` con la fecha del archivo y una advertencia clara de
+  que reemplaza los datos actuales).
 
 ## Fuera del alcance de esta app (decisión explícita)
 

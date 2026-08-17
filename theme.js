@@ -19,6 +19,8 @@ export const colors = {
   dangerSoft: 'rgba(255, 56, 100, 0.12)',
   success: '#00ffa3',
   successSoft: 'rgba(0, 255, 163, 0.12)',
+  warning: '#ffb020', // aviso (ej. presupuesto acercándose al límite) — color de estado, nunca de la paleta categórica
+  warningSoft: 'rgba(255, 176, 32, 0.12)',
   separator: '#232a45',
   fill: '#1b2140', // fondo neutro (botones "Cancelar", inputs deshabilitados)
   fillSoft: '#151933',
@@ -75,20 +77,29 @@ export const typography = {
   cardSubtitle: { fontSize: 13, color: colors.textSecondary },
 };
 
-// Paleta amplia para darle color a cursos, bloques y eventos (tarjetas con
-// franja de color, íconos, puntos de evento) sin depender solo del acento
-// cian. Tonos neón, elegidos para leerse bien sobre el fondo casi negro.
+// Paleta categórica para darle identidad de color a cursos, categorías,
+// bloques y eventos (franja de color, puntos de evento, barras de gráfico)
+// sin depender solo del acento cian. Validada con la herramienta de
+// paletas categóricas del skill de dataviz contra el fondo oscuro de la
+// app (#05060f): banda de luminosidad, piso de croma, separación CVD
+// (daltonismo) en pares adyacentes, piso de visión normal y contraste —
+// las seis pasan. La paleta anterior (10 tonos) fallaba: varios colores
+// eran demasiado claros para el fondo oscuro, y el cian de acento
+// (#00E5FF) y un teal casi idéntico eran indistinguibles incluso con
+// visión de color normal. Se bajó a 7 tonos bien separados — se
+// intentó meter un octavo (amarillo/dorado) pero esa franja del círculo
+// de color choca con naranja y con verde en casi cualquier variante
+// probada (el propio skill documenta que amarillo-naranja es un par
+// difícil); mejor menos colores bien distinguibles que más colores
+// parecidos. Ver docs/decisiones.md.
 export const palette = [
-  '#FF3B5C', // rojo neón
-  '#FF9F1C', // naranja
-  '#FFD60A', // amarillo
-  '#39FF88', // verde neón
-  '#00F5D4', // teal neón
-  '#00E5FF', // cian (acento)
-  '#3D8BFF', // azul
-  '#7B2FF7', // violeta
-  '#C77DFF', // púrpura claro
-  '#FF2DA0', // rosa neón
+  '#E11D48', // rojo carmesí
+  '#D9720A', // naranja quemado
+  '#16A34A', // verde
+  '#0891A6', // teal
+  '#1D5FD1', // azul
+  '#8B3DFF', // violeta
+  '#E11D74', // magenta
 ];
 
 // Asigna un color de la paleta a partir de un texto (ej. nombre de curso),

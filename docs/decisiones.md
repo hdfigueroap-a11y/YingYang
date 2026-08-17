@@ -260,6 +260,97 @@ la app ni del workflow. No hay forma de arreglarlo desde este lado, así que
 se descartó el workflow (se borró de `automation/`) en vez de dejarlo
 instalable pero roto.
 
+**Gráfico "Gastos por categoría" en Finanzas — reusa `colorFromString`, no
+un esquema de color nuevo.** Al agregarlo se validó la paleta neón original
+de `theme.js` (`palette`) con la herramienta de validación de paletas
+categóricas (contraste/CVD) y no pasó — varios colores demasiado claros
+para el fondo oscuro, cian de acento casi indistinguible de un teal de la
+paleta. En su momento no se corrigió (cambiar la paleta afectaría toda la
+app, más de lo que pedía "agrégale gráficos"), pero el usuario dio luz
+verde después ("cambia los colores como quieras") — ver la entrada
+siguiente para la reconstrucción completa.
+
+**Notificaciones locales — `expo-notifications`, sin backend.**
+Pedido explícito del usuario ("agrega aún más funcionalidades... te doy
+todos los permisos que quieras"). Se evaluó y descartó cualquier forma de
+push remoto (Expo push token, servidor) — no hace falta: todo lo que se
+quiere avisar (clase de hoy, evento de hoy, tarea por vencer, pago de
+tarjeta) ya se calcula en el dispositivo con datos que la app ya tiene, así
+que notificaciones **locales** (`Notifications.scheduleNotificationAsync`
+con trigger de fecha fija) alcanzan sin agregar ninguna pieza de
+infraestructura nueva. Limitación aceptada: sin un proceso en segundo plano
+que reprograme solo, los avisos se recalculan cada vez que se abre
+`TodayScreen.js`/`FinanceScreen.js` — se optó por ids estables (incluyen la
+fecha) para que reabrir la misma pantalla el mismo día reemplace el aviso
+en vez de duplicarlo, en vez de intentar deduplicar de otra forma más
+compleja.
+
+**Comparación mes a mes en Finanzas — sin dependencias nuevas.** Badge de
+`▲/▼ N% vs. mes pasado` junto a Ingresos/Gastos, reusando `getMonthSummary()`
+que ya existía (se le pide el mes actual Y el anterior). El color no sigue
+el signo del cambio, sigue si es favorable: más ingresos = verde, más
+gastos = ámbar (`colors.warning`, no rojo — no es un error, solo una
+observación), menos gastos = verde. Si no hay datos del mes anterior (recién
+empezando a usar Finanzas), no se muestra el badge en vez de calcular un
+"Infinity%" sin sentido.
+
+**Respaldo/restauración de Finanzas y Horario — `expo-file-system` (API
+nueva) + `expo-sharing`.** Riesgo real señalado desde temprano en la sesión
+(recomendación no pedida entonces, construida ahora que el usuario dio
+permiso amplio): Finanzas y Horario viven solo en SQLite local, sin ningún
+respaldo — perder o resetear el teléfono los borra por completo. Se evaluó
+subir esto a algún servicio en la nube (Drive, iCloud vía API) y se
+descartó por lo mismo que se descartó antes para "material nuevo" de
+Canvas: es una integración externa nueva, no confirmada, y no hace falta —
+la hoja de compartir nativa de iOS ya deja guardar el archivo donde el
+usuario quiera (Archivos, iCloud Drive, correo), sin que la app tenga que
+saber nada de esos servicios. `expo-file-system` se instaló en su versión
+más nueva (v19, SDK 54), que reemplazó la API async clásica
+(`documentDirectory`/`writeAsStringAsync`) por clases síncronas
+`File`/`Directory`/`Paths` — se usó la API nueva directamente en vez de
+`expo-file-system/legacy`, para no empezar ya con código marcado como
+legacy. Restaurar es explícitamente **destructivo** (reemplaza, no combina)
+y se decidió así a propósito — combinar datos de dos fuentes (ids
+duplicados, categorías con el mismo nombre pero distinto id, etc.) es un
+problema bastante más difícil y propenso a errores silenciosos que una app
+personal de este tamaño no necesita resolver; se avisa con un `Alert`
+explícito antes de restaurar, mostrando la fecha del archivo.
+
+**Pantalla "Hoy": tareas urgentes + clases + eventos, en un solo lugar.**
+Pedido del usuario ("sigue agregando funcionalidades"). `TodayScreen.js`,
+primera sección del menú, combina tres fuentes que ya existían por separado
+(`getTodoItems()` filtrado por `isUrgent`, `getClasses()` filtradas por el
+día de la semana de hoy, `listEventsForDay()` del Calendario) para no tener
+que revisar tres pantallas distintas cada mañana. Reutiliza
+`useWorkBlockScheduler.js` — no se escribió lógica de agendado nueva.
+
+**Paleta categórica reconstruida — el usuario dio libertad de cambiar
+colores.** Al agregar el gráfico de Finanzas se validó la paleta neón
+original de 10 colores (`theme.js`) con la herramienta de validación de
+paletas categóricas (contraste/CVD) del skill de dataviz y **no pasó**:
+varios colores eran demasiado claros para el fondo oscuro de la app
+(`#05060f`), y el cian de acento (`#00E5FF`) — que además era parte de la
+paleta categórica Y el color de marca de los botones/gradientes — resultó
+casi indistinguible de un teal de la misma paleta (ΔE 8.6, por debajo del
+piso de 15 hasta para visión de color normal). Se reconstruyó desde cero,
+probando variantes con el validador hasta encontrar una que pasara las seis
+pruebas (banda de luminosidad, piso de croma, separación CVD adyacente,
+piso de visión normal, contraste): **7 colores** en vez de 10 — se intentó
+mantener un octavo tono amarillo/dorado, pero esa franja del círculo de
+color choca con naranja y con verde en casi cualquier variante probada (el
+propio skill documenta amarillo-naranja como un par estructuralmente
+difícil); se prefirió menos colores bien distinguibles que más colores
+parecidos. Colores hardcodeados en otros archivos que referenciaban hex de
+la paleta vieja (`App.js` — color de sección del menú, `CalendarScreen.js`
+— bloques rápidos) se actualizaron a la paleta nueva. De paso se separó el
+color de "aviso" del presupuesto (antes un naranja suelto de la paleta
+categórica) en un `colors.warning` propio — el skill marca mezclar colores
+de estado con colores categóricos como error, ya que un color de estado
+"impersonando" una categoría (o viceversa) confunde qué es identidad y qué
+es una alerta. Los colores de marca (`colors.accent`, los gradientes) no se
+tocaron — son un rol distinto (identidad de marca/UI), no identidad
+categórica de datos del usuario.
+
 **Herramientas de IA gratuitas complementarias (fuera de este repo).**
 Evaluadas como apoyo general de desarrollo, no específicas de este proyecto:
 GitHub Copilot Free (vía GitHub Student Developer Pack), Windsurf, Aider (agente
@@ -293,6 +384,103 @@ dependencia nueva pero oficial de Expo y liviana — instalada con
 confirmación del usuario. Esquema inicial (`accounts`, `categories`,
 `transactions`, `budgets`) en `financeDb.js`; todo permanece 100% local en
 el dispositivo, sin servicio externo ni credencial.
+
+**Revisión de arquitectura (2026-08-16) — deuda estructural identificada y
+parte de ella corregida en la misma sesión.** A pedido del usuario
+("piensa como un arquitecto de software... critica objetivamente el
+proyecto"), se revisó el código (no solo los docs) con ojo de
+mantenibilidad a futuro, no de bugs puntuales. Hallazgos, de mayor a menor
+impacto:
+
+1. **Archivos "dios" por pantalla.** `FinanceScreen.js` tenía 904 líneas:
+   la pantalla más sus 4 modales (`AddTransactionModal`,
+   `CardPurchasesModal`, `ConfigCardModal`, `BudgetModal`) y utilidades de
+   fecha/dinero locales, todo en un archivo. El costo no es hipotético: el
+   bug de `flexWrap`/`width:'100%'` documentado más abajo tomó tres rondas
+   de diagnóstico en parte porque estilos de secciones muy distintas de la
+   pantalla vivían mezclados en un mismo `StyleSheet`. **Corregido**: los
+   4 modales pasaron a archivos propios (`AddTransactionModal.js`,
+   `CardPurchasesModal.js`, `ConfigCardModal.js`, `BudgetModal.js`),
+   compartiendo estilos vía `financeStyles.js`. Mismo patrón aplicado a
+   `ScheduleScreen.js` (322 líneas, un modal): `AddClassModal.js` +
+   `scheduleStyles.js`.
+2. **Utilidades duplicadas en vez de compartidas.** `pad2()` estaba
+   definida de forma independiente y con el mismo cuerpo en
+   `FinanceScreen.js` y `ScheduleScreen.js` — confirmado con `grep`, no una
+   sospecha. Lo mismo con formateo de fecha/hora/dinero. Dos
+   implementaciones del mismo cálculo divergiendo con el tiempo es
+   exactamente el mecanismo que ya produjo bugs de UI en este proyecto.
+   **Corregido**: se creó `formatters.js` con todas esas funciones
+   (`pad2`, `isoDate`, `parseIsoDate`, `timeToHHMM`, `hhmmToDate`,
+   `formatTimeLabel`, `nextDateForWeekday`, `combineDateAndTime`,
+   `monthKey`, `previousMonthKey`, `monthLabel`, `percentChange`,
+   `formatMoney`); `FinanceScreen.js` y `ScheduleScreen.js` ahora importan
+   de ahí, sin definiciones locales.
+3. **Cero red de seguridad automatizada.** No hay `eslint`, `prettier` ni
+   tests en el proyecto — nada mecánico que hubiera atrapado antes el bug
+   de `flexWrap` (dos props de tamaño friccionando en el mismo estilo) o
+   el del `paddingTop` del Drawer pisado (clave de estilo repetida en un
+   array). **No corregido en esta sesión** — instalar tooling de desarrollo
+   es una decisión de dependencias que requiere confirmación explícita del
+   usuario (regla del proyecto); queda como ítem de roadmap en
+   `planner.md`, Fase 7.
+4. **Sin `ErrorBoundary` en la raíz.** Un error de render no capturado en
+   cualquier pantalla dejaba una pantalla en blanco sin recuperación.
+   **Corregido**: `ErrorBoundary.js` (componente de clase de React, sin
+   dependencias nuevas) envuelve los tres estados de `App.js`.
+5. **Sin resiliencia de red en Tareas/Cursos, estructura de carpetas
+   plana, notificaciones/respaldo frágiles por diseño.** Riesgos reales
+   pero de menor impacto inmediato o ya aceptados a propósito (ver las
+   entradas de notificaciones y respaldo más abajo) — **no corregidos en
+   esta sesión**, quedan como roadmap en `planner.md`, Fase 7, para
+   ejecutar por fases con confirmación del usuario en vez de un cambio
+   masivo de una sola vez sin poder probarlo en el teléfono desde acá.
+
+Se optó por corregir 1, 2 y 4 directamente (no requieren dependencias
+nuevas, son mecánicos y de bajo riesgo — extraer código a otro archivo sin
+cambiar su comportamiento) y dejar 3 y 5 como decisiones pendientes de
+confirmar con el usuario, seguiendo la regla del proyecto de no instalar
+dependencias grandes ni tocar la app entera sin avisar. También se
+implementó, sin dependencias nuevas, la caché de la última respuesta
+buena de Canvas (`canvasCache.js`, vía `expo-file-system`) para
+`TasksScreen.js`/`CoursesScreen.js` — ver `docs/planner.md`, Fase 7,
+punto 6.
+
+**ESLint + Prettier instalados (confirmado por el usuario).**
+`npx expo lint` instaló `eslint@^9` + `eslint-config-expo` (config oficial
+de Expo, flat config) y agregó `npm run lint`; se sumó `prettier` +
+`eslint-config-prettier` con `.prettierrc.json` y `npm run format`/
+`format:check`. Primera corrida sobre todo el proyecto: 0 errores, solo 3
+warnings preexistentes y menores. `prettier --check` marcó 29 archivos con
+formato distinto — a propósito **no se corrió `--write`** todavía: el
+árbol tenía cambios sin commitear de antes de esta sesión, y reformatear
+todo ahora hubiera mezclado cambios de formato con esos cambios
+funcionales. Queda para cuando el usuario haga commit de su trabajo en
+curso.
+
+**Jest instalado y primeros tests, sobre la lógica de dinero
+(confirmado por el usuario).** `npx expo install jest-expo jest --dev`
+(versiones alineadas al SDK, mismo criterio que cualquier otra dependencia
+de este proyecto — nunca dejar que `npm install` resuelva por su cuenta).
+`financeDb.test.js` prueba `getInstallmentProgress` (progreso de cuotas) y
+`lastCutoffDate`/`nextDueDate` (corte y próximo pago de tarjeta) — 13
+tests, todos en verde. `expo-sqlite` se mockea en el test: estas funciones
+son puras, no tocan la base de datos real.
+
+Escribir el test destapó un bug real: `getInstallmentProgress` construía
+la fecha de la compra con `new Date(transaction.date)` sobre un string
+'YYYY-MM-DD', que JS interpreta como **UTC** — en Colombia (UTC-5) eso
+corre la fecha un día hacia atrás (medianoche UTC del 15 es las 7pm del 14
+en Colombia) y puede adelantar o atrasar en 1 el número de cuotas que la
+app muestra como ya "cobradas" cerca de un aniversario mensual. Es el
+mismo problema que `formatters.js` ya documenta y resuelve con
+`parseIsoDate` en el resto de la app (`schedulePicker.js`,
+`FinanceScreen.js`, etc.) — `getInstallmentProgress`, al vivir en
+`financeDb.js`, nunca se migró a usarlo. Corregido: ahora importa y usa
+`parseIsoDate` de `formatters.js`. `lastCutoffDate`/`nextDueDate`/
+`toIsoDate` pasaron de privadas del módulo a exportadas (sin cambiar su
+comportamiento) para poder probarlas directamente sin depender de una
+conexión real a SQLite.
 
 **Rediseño visual: oscuro y "futurista", con `expo-linear-gradient`.**
 Reemplaza el estilo claro tipo iOS nativo. Fondo casi negro con tinte
