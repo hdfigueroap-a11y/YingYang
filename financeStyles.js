@@ -69,14 +69,20 @@ export const styles = StyleSheet.create({
   txSubtitle: { fontSize: 12.5, color: colors.textSecondary, marginTop: 2 },
   txAmount: { fontSize: 14.5, fontWeight: '700' },
   overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.65)' },
+  // fondo translúcido (no colors.background sólido) porque un <BlurView>
+  // se monta detrás como primer hijo (ver AddTransactionModal.js y los
+  // demás modales) — la hoja lee como vidrio esmerilado sobre el contenido
+  // que queda debajo, no como un panel opaco más. overflow:'hidden' recorta
+  // ese blur a las esquinas redondeadas de arriba.
   modalContent: {
-    backgroundColor: colors.background,
+    backgroundColor: 'rgba(5, 6, 15, 0.72)',
+    overflow: 'hidden',
     borderTopLeftRadius: radius.sheet,
     borderTopRightRadius: radius.sheet,
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: colors.separator,
+    borderColor: colors.glowBorder,
     paddingHorizontal: spacing.lg,
     maxHeight: '88%',
   },

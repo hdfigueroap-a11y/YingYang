@@ -19,6 +19,7 @@ import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { getCredentials, clearCredentials } from './canvasApi';
@@ -33,14 +34,25 @@ import CalendarScreen from './CalendarScreen';
 import FinanceScreen from './FinanceScreen';
 import SettingsScreen from './SettingsScreen';
 import AppButton from './AppButton';
+import YinYangMark from './YinYangMark';
 
 const Drawer = createDrawerNavigator();
 
-// Íconos simples por texto (sin librería de íconos) y un color de identidad
-// por sección — cada una conserva el acento que ya tenía como pestaña. Los
-// colores vienen de `palette` (theme.js) en vez de repetir el hex a mano,
-// para que quede una sola fuente de verdad si la paleta se vuelve a tocar.
-const SCREEN_ICONS = { Hoy: '🌤️', Tareas: '📝', Cursos: '📚', Horario: '🎓', Calendario: '📅', Finanzas: '💰', Ajustes: '⚙️' };
+// Íconos vectoriales (Ionicons, incluido con Expo — @expo/vector-icons no
+// pidió instalación aparte) en vez de emoji: el emoji de plataforma trae su
+// propio color fijo y no se puede recolorear, así que sobre el menú oscuro
+// nunca combinaba de verdad con el acento activo/inactivo de cada fila. El
+// color de identidad por sección viene de `palette` (theme.js) — una sola
+// fuente de verdad si la paleta se vuelve a tocar.
+const SCREEN_ICONS = {
+  Hoy: 'partly-sunny-outline',
+  Tareas: 'checkbox-outline',
+  Cursos: 'book-outline',
+  Horario: 'school-outline',
+  Calendario: 'calendar-outline',
+  Finanzas: 'wallet-outline',
+  Ajustes: 'settings-outline',
+};
 const SCREEN_COLORS = {
   Hoy: palette[3], // teal
   Tareas: colors.accent,
@@ -62,7 +74,10 @@ function CustomDrawerContent({ onLogout, ...props }) {
 
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerContent}>
-      <Text style={styles.drawerTitle}>Canvas Dashboard</Text>
+      <View style={styles.drawerHeader}>
+        <YinYangMark size={28} />
+        <Text style={styles.drawerTitle}>Ying-Yang</Text>
+      </View>
       <DrawerItemList {...props} />
       <View style={[styles.drawerFooter, { paddingBottom: insets.bottom }]}>
         <AppButton title="Cerrar sesión" onPress={onLogout} variant="plain" />
@@ -134,7 +149,7 @@ export default function App() {
               drawerInactiveTintColor: colors.textSecondary,
               drawerLabelStyle: { fontSize: 14, fontWeight: '600' },
               drawerIcon: ({ focused }) => (
-                <Text style={{ fontSize: 18, opacity: focused ? 1 : 0.6 }}>{SCREEN_ICONS[route.name]}</Text>
+                <Ionicons name={SCREEN_ICONS[route.name]} size={20} color={focused ? colors.background : colors.textSecondary} />
               ),
             })}
           >
@@ -168,12 +183,17 @@ const styles = StyleSheet.create({
   // sesión" quedara más arriba de lo que el usuario quería. Ese espacio
   // ahora lo controla solo `drawerFooter` (ver CustomDrawerContent).
   drawerContent: { flex: 1, paddingBottom: 0 },
+  drawerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
+  },
   drawerTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: colors.text,
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
     letterSpacing: -0.3,
   },
   drawerFooter: {

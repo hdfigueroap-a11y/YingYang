@@ -3,7 +3,8 @@
 // original (ver AddTransactionModal.js para el contexto de la extracción).
 
 import React from 'react';
-import { View, Text, ScrollView, Modal } from 'react-native';
+import { View, Text, ScrollView, Modal, StyleSheet } from 'react-native';
+import { BlurView } from 'expo-blur';
 import AppButton from './AppButton';
 import { colorFromString } from './theme';
 import { parseIsoDate, formatMoney } from './formatters';
@@ -16,6 +17,7 @@ export default function CardPurchasesModal({ visible, card, purchases, onClose }
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
         <View style={styles.modalContent}>
+          <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFillObject} />
           <View style={styles.handle} />
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.modalScroll}>
             <Text style={styles.modalTitle}>Compras — {card.name}</Text>

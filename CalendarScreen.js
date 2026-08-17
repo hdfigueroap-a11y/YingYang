@@ -110,7 +110,7 @@ export default function CalendarScreen() {
 
       await createEvent({
         title: block.title,
-        notes: 'Creado desde Canvas Dashboard',
+        notes: 'Creado desde Ying-Yang',
         startDate: start,
         endDate: end,
       });
@@ -141,7 +141,7 @@ export default function CalendarScreen() {
         </View>
         <Text style={styles.permissionTitle}>Acceso al Calendario</Text>
         <Text style={styles.permissionSubtitle}>
-          Canvas Dashboard necesita acceso a tu Calendario de iPhone para crear
+          Ying-Yang necesita acceso a tu Calendario de iPhone para crear
           bloques de trabajo y ver tus próximos eventos.
         </Text>
         <AppButton

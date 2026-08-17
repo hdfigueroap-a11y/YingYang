@@ -57,7 +57,7 @@ export default function ScheduleScreen() {
       const endDate = combineDateAndTime(day, cls.end_time);
       await createWeeklyRecurringEvent({
         title: cls.name,
-        notes: cls.location ? `Lugar: ${cls.location}. Creado desde Canvas Dashboard.` : 'Creado desde Canvas Dashboard',
+        notes: cls.location ? `Lugar: ${cls.location}. Creado desde Ying-Yang.` : 'Creado desde Ying-Yang',
         startDate,
         endDate,
       });

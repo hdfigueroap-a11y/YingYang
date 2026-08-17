@@ -32,14 +32,18 @@ export const styles = StyleSheet.create({
   modalActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
   addButton: { marginHorizontal: spacing.lg, marginBottom: spacing.lg },
   overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.65)' },
+  // Ver el comentario equivalente en financeStyles.js: fondo translúcido +
+  // overflow:'hidden' para que el <BlurView> montado como primer hijo (en
+  // AddClassModal.js) lea como vidrio esmerilado recortado a las esquinas.
   modalContent: {
-    backgroundColor: colors.background,
+    backgroundColor: 'rgba(5, 6, 15, 0.72)',
+    overflow: 'hidden',
     borderTopLeftRadius: radius.sheet,
     borderTopRightRadius: radius.sheet,
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: colors.separator,
+    borderColor: colors.glowBorder,
     paddingHorizontal: spacing.lg,
     maxHeight: '88%',
   },

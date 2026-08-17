@@ -3,7 +3,8 @@
 // original (ver AddTransactionModal.js para el contexto de la extracción).
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TextInput, Modal, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, ScrollView, TextInput, Modal, Alert, KeyboardAvoidingView, StyleSheet } from 'react-native';
+import { BlurView } from 'expo-blur';
 import AppButton from './AppButton';
 import { colors } from './theme';
 import { styles } from './financeStyles';
@@ -40,6 +41,7 @@ export default function ConfigCardModal({ visible, card, onCancel, onSave }) {
     <Modal visible={visible} transparent animationType="slide">
       <KeyboardAvoidingView style={styles.overlay} behavior="padding">
         <View style={styles.modalContent}>
+          <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFillObject} />
           <View style={styles.handle} />
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.modalScroll}>
             <Text style={styles.modalTitle}>Configurar {card.name}</Text>

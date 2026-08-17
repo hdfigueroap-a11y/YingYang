@@ -41,6 +41,7 @@ import {
 import DateTimePicker, {
   DateTimePickerAndroid,
 } from '@react-native-community/datetimepicker';
+import { BlurView } from 'expo-blur';
 import { listEventsForDay } from './deviceCalendar';
 import AppButton from './AppButton';
 import { colors, radius, spacing, typography } from './theme';
@@ -133,6 +134,7 @@ export function SchedulePickerModal({ visible, label, initialDate, onConfirm, on
     <Modal visible={visible} transparent animationType="slide">
       <KeyboardAvoidingView style={styles.overlay} behavior="padding">
         <View style={styles.content}>
+          <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFillObject} />
           <View style={styles.handle} />
 
           <ScrollView
@@ -197,14 +199,18 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(0,0,0,0.65)',
   },
+  // fondo translúcido + overflow:'hidden': el <BlurView> se monta como
+  // primer hijo (ver arriba) y queda recortado a las esquinas redondeadas
+  // — mismo patrón que financeStyles.js/scheduleStyles.js.
   content: {
-    backgroundColor: colors.background,
+    backgroundColor: 'rgba(5, 6, 15, 0.72)',
+    overflow: 'hidden',
     borderTopLeftRadius: radius.sheet,
     borderTopRightRadius: radius.sheet,
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: colors.separator,
+    borderColor: colors.glowBorder,
     paddingHorizontal: spacing.lg,
     maxHeight: '88%',
   },

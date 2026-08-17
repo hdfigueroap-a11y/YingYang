@@ -92,7 +92,7 @@ export function useWorkBlockScheduler() {
 
       await createEvent({
         title: `Trabajo: ${assignment.name ?? 'Tarea de Canvas'}`,
-        notes: `Creado desde Canvas Dashboard.${dueNote}`,
+        notes: `Creado desde Ying-Yang.${dueNote}`,
         startDate: start,
         endDate: end,
       });

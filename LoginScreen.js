@@ -12,10 +12,10 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { saveCredentials } from './canvasApi';
 import AppButton from './AppButton';
-import { colors, radius, spacing, gradients } from './theme';
+import YinYangMark from './YinYangMark';
+import { colors, radius, spacing } from './theme';
 
 export default function LoginScreen({ onSaved }) {
   const [baseUrl, setBaseUrl] = useState('https://umb.instructure.com');
@@ -45,10 +45,10 @@ export default function LoginScreen({ onSaved }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.badge}>
-          <Text style={styles.badgeIcon}>📋</Text>
-        </LinearGradient>
-        <Text style={styles.title}>Canvas Dashboard</Text>
+        <View style={styles.badgeWrap}>
+          <YinYangMark size={64} />
+        </View>
+        <Text style={styles.title}>Ying-Yang</Text>
         <Text style={styles.subtitle}>Conecta con Canvas para ver tus tareas pendientes</Text>
 
         <View style={styles.field}>
@@ -104,16 +104,7 @@ export default function LoginScreen({ onSaved }) {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.surface },
   container: { flexGrow: 1, justifyContent: 'center', padding: spacing.xxl },
-  badge: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    alignSelf: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.lg,
-  },
-  badgeIcon: { fontSize: 30 },
+  badgeWrap: { alignSelf: 'center', marginBottom: spacing.lg },
   title: { fontSize: 24, fontWeight: '700', color: colors.text, textAlign: 'center', letterSpacing: -0.4 },
   subtitle: {
     fontSize: 14.5,

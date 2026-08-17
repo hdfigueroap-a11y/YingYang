@@ -1,4 +1,4 @@
-# Canvas Dashboard
+# Ying-Yang
 
 App personal para iPhone que centraliza tareas de Canvas y un calendario de
 horario (sueño, lectura, gimnasio, trabajo en tareas). Uso 100% individual —
