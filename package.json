@@ -48,6 +48,8 @@
   "private": true,
   "jest": {
     "preset": "jest-expo",
-    "modulePathIgnorePatterns": ["<rootDir>/.claude/worktrees/"]
+    "modulePathIgnorePatterns": [
+      "<rootDir>/.claude/worktrees/"
+    ]
   }
 }

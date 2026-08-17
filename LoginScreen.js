@@ -2,16 +2,7 @@
 // Formulario simple para guardar el token de Canvas cifrado en el dispositivo.
 
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from 'react-native';
+import { View, Text, TextInput, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { saveCredentials } from './canvasApi';
 import AppButton from './AppButton';
@@ -40,10 +31,7 @@ export default function LoginScreen({ onSaved }) {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.badge}>
           <Text style={styles.badgeIcon}>📋</Text>
@@ -81,9 +69,8 @@ export default function LoginScreen({ onSaved }) {
             placeholderTextColor={colors.textTertiary}
           />
           <Text style={styles.hint}>
-            ✓ Tu token se guarda cifrado en este dispositivo y nunca se comparte.
-            Genera uno en Canvas: Perfil {'>'} Configuración {'>'} New Access
-            Token, con fecha de expiración.
+            ✓ Tu token se guarda cifrado en este dispositivo y nunca se comparte. Genera uno en Canvas: Perfil {'>'}{' '}
+            Configuración {'>'} New Access Token, con fecha de expiración.
           </Text>
         </View>
 

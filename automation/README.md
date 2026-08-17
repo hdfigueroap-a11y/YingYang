@@ -22,7 +22,7 @@ novedades en Canvas. Corresponden a la Fase 4 del roadmap (ver
   los anuncios nuevos (filtra el resto de tipos de actividad — discusiones,
   calificaciones, etc.).
 
-Los tres guardan su "última corrida" en el *workflow static data* de n8n
+Los tres guardan su "última corrida" en el _workflow static data_ de n8n
 (no en ningún archivo ni base de datos externa) — es lo que les permite
 avisar solo cuando hay algo nuevo, en vez de mandar el mismo email todos los
 días.
@@ -79,4 +79,4 @@ login normal).
 Los workflows solo avisan sobre lo nuevo comparado con su última corrida. Si
 alguna vez querés que vuelvan a avisar sobre todo lo actual (por ejemplo,
 para probarlos), lo más simple es duplicar el workflow en n8n — el duplicado
-arranca con su propio *static data* vacío.
+arranca con su propio _static data_ vacío.

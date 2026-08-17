@@ -197,7 +197,12 @@ export default function FinanceScreen() {
             )}
           </View>
         </View>
-        <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.balanceTile}>
+        <LinearGradient
+          colors={gradients.primary}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.balanceTile}
+        >
           <Text style={styles.balanceLabel}>Balance del mes</Text>
           <Text style={styles.balanceValue}>{formatMoney(summary.balance)}</Text>
         </LinearGradient>
@@ -302,7 +307,9 @@ export default function FinanceScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={[typography.sectionLabel, styles.sectionLabel]}>Movimientos del mes (toca uno para eliminarlo)</Text>
+          <Text style={[typography.sectionLabel, styles.sectionLabel]}>
+            Movimientos del mes (toca uno para eliminarlo)
+          </Text>
           {transactions.length === 0 ? (
             <Text style={styles.empty}>Sin movimientos este mes</Text>
           ) : (
@@ -316,7 +323,9 @@ export default function FinanceScreen() {
                     {tx.installments > 1 ? ` · a ${tx.installments} cuotas` : ''}
                   </Text>
                 </View>
-                <Text style={[styles.txAmount, { color: tx.category_kind === 'ingreso' ? colors.success : colors.danger }]}>
+                <Text
+                  style={[styles.txAmount, { color: tx.category_kind === 'ingreso' ? colors.success : colors.danger }]}
+                >
                   {tx.category_kind === 'ingreso' ? '+' : '-'}
                   {formatMoney(tx.amount)}
                 </Text>
@@ -354,7 +363,12 @@ export default function FinanceScreen() {
         }}
       />
 
-      <CardPurchasesModal visible={Boolean(cardModal)} card={cardModal} purchases={cardPurchases} onClose={() => setCardModal(null)} />
+      <CardPurchasesModal
+        visible={Boolean(cardModal)}
+        card={cardModal}
+        purchases={cardPurchases}
+        onClose={() => setCardModal(null)}
+      />
 
       <ConfigCardModal
         visible={Boolean(configCard)}

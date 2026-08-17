@@ -40,7 +40,14 @@ export default function ScheduleScreen() {
   function confirmDelete(cls) {
     Alert.alert('Eliminar clase', `¿Eliminar "${cls.name}" del horario?`, [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Eliminar', style: 'destructive', onPress: async () => { await deleteClass(cls.id); load(); } },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: async () => {
+          await deleteClass(cls.id);
+          load();
+        },
+      },
     ]);
   }
 
@@ -49,7 +56,10 @@ export default function ScheduleScreen() {
     try {
       const granted = (await hasPermission()) || (await requestPermission());
       if (!granted) {
-        Alert.alert('Permiso de Calendario necesario', 'Actívalo en Ajustes > Privacidad > Calendarios para poder crear el evento.');
+        Alert.alert(
+          'Permiso de Calendario necesario',
+          'Actívalo en Ajustes > Privacidad > Calendarios para poder crear el evento.'
+        );
         return;
       }
       const day = nextDateForWeekday(cls.day_of_week);
@@ -57,7 +67,9 @@ export default function ScheduleScreen() {
       const endDate = combineDateAndTime(day, cls.end_time);
       await createWeeklyRecurringEvent({
         title: cls.name,
-        notes: cls.location ? `Lugar: ${cls.location}. Creado desde Canvas Dashboard.` : 'Creado desde Canvas Dashboard',
+        notes: cls.location
+          ? `Lugar: ${cls.location}. Creado desde Canvas Dashboard.`
+          : 'Creado desde Canvas Dashboard',
         startDate,
         endDate,
       });
@@ -113,7 +125,13 @@ export default function ScheduleScreen() {
         })}
       </ScrollView>
 
-      <AppButton title="+ Agregar clase" onPress={() => setShowAddModal(true)} variant="primary" size="large" style={styles.addButton} />
+      <AppButton
+        title="+ Agregar clase"
+        onPress={() => setShowAddModal(true)}
+        variant="primary"
+        size="large"
+        style={styles.addButton}
+      />
 
       <AddClassModal
         visible={showAddModal}

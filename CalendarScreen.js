@@ -5,12 +5,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, Alert, ActivityIndicator, Platform } from 'react-native';
 import { openAndroidPicker, SchedulePickerModal } from './schedulePicker';
-import {
-  requestPermission,
-  hasPermission,
-  createEvent,
-  listUpcomingEvents,
-} from './deviceCalendar';
+import { requestPermission, hasPermission, createEvent, listUpcomingEvents } from './deviceCalendar';
 import AppButton from './AppButton';
 import { colors, radius, spacing, cardShadow, typography, colorFromString } from './theme';
 
@@ -67,10 +62,7 @@ export default function CalendarScreen() {
     const ok = await requestPermission();
     setGranted(ok);
     if (!ok) {
-      Alert.alert(
-        'Permiso denegado',
-        'Puedes habilitarlo luego en Ajustes > Privacidad > Calendarios.'
-      );
+      Alert.alert('Permiso denegado', 'Puedes habilitarlo luego en Ajustes > Privacidad > Calendarios.');
     }
   }
 
@@ -140,8 +132,8 @@ export default function CalendarScreen() {
         </View>
         <Text style={styles.permissionTitle}>Acceso al Calendario</Text>
         <Text style={styles.permissionSubtitle}>
-          Canvas Dashboard necesita acceso a tu Calendario de iPhone para crear
-          bloques de trabajo y ver tus próximos eventos.
+          Canvas Dashboard necesita acceso a tu Calendario de iPhone para crear bloques de trabajo y ver tus próximos
+          eventos.
         </Text>
         <AppButton
           title="Dar permiso"
@@ -162,18 +154,13 @@ export default function CalendarScreen() {
             <Text style={typography.sectionLabel}>Crear bloque rápido</Text>
           </View>
           {QUICK_BLOCKS.map((block, i) => (
-            <View
-              key={block.title}
-              style={[styles.blockRow, i < QUICK_BLOCKS.length - 1 && styles.rowDivider]}
-            >
+            <View key={block.title} style={[styles.blockRow, i < QUICK_BLOCKS.length - 1 && styles.rowDivider]}>
               <View style={[styles.blockIcon, { backgroundColor: `${block.color}22` }]}>
                 <Text style={styles.blockIconText}>{block.icon}</Text>
               </View>
               <View style={styles.blockInfo}>
                 <Text style={styles.blockLabel}>{block.title}</Text>
-                <Text style={[styles.blockDuration, { color: block.color }]}>
-                  {formatDuration(block.durationMin)}
-                </Text>
+                <Text style={[styles.blockDuration, { color: block.color }]}>{formatDuration(block.durationMin)}</Text>
               </View>
               <AppButton
                 title={creating === block.title ? '...' : 'Crear'}
@@ -195,10 +182,7 @@ export default function CalendarScreen() {
             <Text style={styles.empty}>Sin eventos próximos</Text>
           ) : (
             events.map((item, i) => (
-              <View
-                key={item.id}
-                style={[styles.eventRow, i < events.length - 1 && styles.rowDivider]}
-              >
+              <View key={item.id} style={[styles.eventRow, i < events.length - 1 && styles.rowDivider]}>
                 <View style={[styles.eventDot, { backgroundColor: colorFromString(item.title) }]} />
                 <View style={styles.eventInfo}>
                   <Text style={styles.eventTitle}>{item.title ?? '(sin título)'}</Text>

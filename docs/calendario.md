@@ -15,6 +15,7 @@ eventos directo en el calendario "por defecto" configurado en el iPhone
 ## Archivo relevante
 
 `deviceCalendar.js` — wrapper de `expo-calendar`:
+
 - `requestPermission()` / `hasPermission()`
 - `createEvent({ title, notes, startDate, endDate })`
 - `listUpcomingEvents(days)`
@@ -22,6 +23,7 @@ eventos directo en el calendario "por defecto" configurado en el iPhone
   selector de fecha/hora en iOS para mostrar los compromisos existentes
 
 `schedulePicker.js` — selector de fecha/hora reutilizable:
+
 - **Android:** diálogo nativo encadenado fecha→hora vía `openAndroidPicker()`
   (el propio diálogo de fecha de Android ya se ve como calendario mensual).
 - **iOS:** `<SchedulePickerModal>`. Muestra un calendario mensual real
@@ -57,6 +59,7 @@ Usado directamente por `CalendarScreen.js`, y también por el hook
 `CoursesScreen.js`).
 
 `CalendarScreen.js` — pantalla con:
+
 - Botón de pedir permiso (si no se ha otorgado)
 - Bloques rápidos: Sueño (8h), Lectura (1h), Gimnasio (1h), Trabajo — tarea difícil
   (2h), Trabajo — tarea fácil (1h) — cada uno abre el selector real de fecha/hora
@@ -90,6 +93,7 @@ integrable.
 ## Historial de decisiones descartadas (por qué no se usó Google/Microsoft)
 
 ### Google Calendar API (descartado)
+
 - Requería habilitar Google Calendar API en Google Cloud Console.
 - Al crear las credenciales OAuth, Google Cloud exigió vincular una **cuenta de
   Facturación de Cloud** con un **prepago único de COP 30.000**.
@@ -104,6 +108,7 @@ integrable.
   estudiantes.
 
 ### Microsoft Graph / Azure App Registration (descartado)
+
 - Alternativa evaluada tras el bloqueo de Google: Microsoft Graph no exige cuenta
   de facturación para uso gratuito de la Calendar API.
 - Sin embargo, al intentar registrar la app en Azure con la cuenta institucional,

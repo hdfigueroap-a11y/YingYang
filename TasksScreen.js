@@ -99,9 +99,7 @@ export default function TasksScreen() {
           const assignment = item.assignment;
           const types = assignment?.submission_types || [];
           const canSubmit =
-            types.includes('online_text_entry') ||
-            types.includes('online_url') ||
-            types.includes('online_upload');
+            types.includes('online_text_entry') || types.includes('online_url') || types.includes('online_upload');
           const urgent = assignment?.due_at && isUrgent(assignment.due_at);
           const courseColor = colorFromString(item.context_name || assignment?.name);
 

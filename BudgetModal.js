@@ -12,7 +12,15 @@ import AppButton from './AppButton';
 import { colors } from './theme';
 import { styles } from './financeStyles';
 
-export default function BudgetModal({ visible, categories, editingBudget, existingCategoryIds, onCancel, onSave, onDelete }) {
+export default function BudgetModal({
+  visible,
+  categories,
+  editingBudget,
+  existingCategoryIds,
+  onCancel,
+  onSave,
+  onDelete,
+}) {
   const [categoryId, setCategoryId] = useState(null);
   const [amount, setAmount] = useState('');
 
@@ -88,13 +96,24 @@ export default function BudgetModal({ visible, categories, editingBudget, existi
             />
 
             {editingBudget && (
-              <AppButton title="Eliminar presupuesto" onPress={handleDelete} variant="plain" style={styles.deleteLink} />
+              <AppButton
+                title="Eliminar presupuesto"
+                onPress={handleDelete}
+                variant="plain"
+                style={styles.deleteLink}
+              />
             )}
           </ScrollView>
 
           <View style={styles.modalActions}>
             <AppButton title="Cancelar" onPress={onCancel} variant="neutral" size="large" style={styles.actionButton} />
-            <AppButton title="Guardar" onPress={handleSave} variant="primary" size="large" style={styles.actionButton} />
+            <AppButton
+              title="Guardar"
+              onPress={handleSave}
+              variant="primary"
+              size="large"
+              style={styles.actionButton}
+            />
           </View>
         </View>
       </KeyboardAvoidingView>

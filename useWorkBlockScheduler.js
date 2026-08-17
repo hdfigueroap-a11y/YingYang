@@ -32,15 +32,11 @@ export function useWorkBlockScheduler() {
   const [showIosPicker, setShowIosPicker] = useState(false);
 
   function scheduleWorkBlock(assignment) {
-    Alert.alert(
-      'Dificultad de la tarea',
-      `¿Qué tan difícil es "${assignment?.name ?? 'esta tarea'}"?`,
-      [
-        { text: 'Fácil (1h)', onPress: () => startScheduling(assignment, 'facil') },
-        { text: 'Difícil (2h)', onPress: () => startScheduling(assignment, 'dificil') },
-        { text: 'Cancelar', style: 'cancel' },
-      ]
-    );
+    Alert.alert('Dificultad de la tarea', `¿Qué tan difícil es "${assignment?.name ?? 'esta tarea'}"?`, [
+      { text: 'Fácil (1h)', onPress: () => startScheduling(assignment, 'facil') },
+      { text: 'Difícil (2h)', onPress: () => startScheduling(assignment, 'dificil') },
+      { text: 'Cancelar', style: 'cancel' },
+    ]);
   }
 
   async function startScheduling(assignment, difficulty) {
@@ -86,9 +82,7 @@ export function useWorkBlockScheduler() {
       const end = new Date(start);
       end.setMinutes(end.getMinutes() + durationMin);
 
-      const dueNote = assignment.due_at
-        ? ` Vence: ${new Date(assignment.due_at).toLocaleString()}`
-        : '';
+      const dueNote = assignment.due_at ? ` Vence: ${new Date(assignment.due_at).toLocaleString()}` : '';
 
       await createEvent({
         title: `Trabajo: ${assignment.name ?? 'Tarea de Canvas'}`,

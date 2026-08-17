@@ -19,6 +19,7 @@ Canvas usa un **Access Token personal**, generado en:
 ## URL base
 
 Depende de la institución, por ejemplo:
+
 - UMB: `https://umb.instructure.com`
 - UNAL: (URL propia de la institución)
 
@@ -26,21 +27,21 @@ Se guarda junto con el token en `saveCredentials(token, baseUrl)`.
 
 ## Endpoints usados actualmente
 
-| Endpoint | Uso |
-|---|---|
-| `GET /api/v1/users/self/todo` | Lista de tareas pendientes (pantalla Tareas) |
-| `GET /api/v1/courses?enrollment_state=active` | Lista de cursos activos (pantalla Cursos) |
-| `GET /api/v1/courses/:id/assignments` | Todas las tareas de un curso (pantalla Cursos, al entrar a uno) |
-| `POST /api/v1/courses/:id/assignments/:id/submissions` | Enviar entregas — texto (`online_text_entry`), URL (`online_url`) y archivo (`online_upload`) |
-| `POST /api/v1/courses/:id/assignments/:id/submissions/self/files` | Paso 1 de la subida de archivos (pide la URL real de subida) |
+| Endpoint                                                          | Uso                                                                                           |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `GET /api/v1/users/self/todo`                                     | Lista de tareas pendientes (pantalla Tareas)                                                  |
+| `GET /api/v1/courses?enrollment_state=active`                     | Lista de cursos activos (pantalla Cursos)                                                     |
+| `GET /api/v1/courses/:id/assignments`                             | Todas las tareas de un curso (pantalla Cursos, al entrar a uno)                               |
+| `POST /api/v1/courses/:id/assignments/:id/submissions`            | Enviar entregas — texto (`online_text_entry`), URL (`online_url`) y archivo (`online_upload`) |
+| `POST /api/v1/courses/:id/assignments/:id/submissions/self/files` | Paso 1 de la subida de archivos (pide la URL real de subida)                                  |
 
 ## Endpoints documentados pero no implementados todavía
 
-| Endpoint | Uso planeado |
-|---|---|
-| `GET /api/v1/calendar_events` | Sincronizar deadlines (alternativa a construir las reglas manualmente) |
-| `GET /api/v1/users/self/grades` | Notas / promedio ponderado |
-| `GET /api/v1/courses/:id/announcements` | Feed de avisos |
+| Endpoint                                | Uso planeado                                                           |
+| --------------------------------------- | ---------------------------------------------------------------------- |
+| `GET /api/v1/calendar_events`           | Sincronizar deadlines (alternativa a construir las reglas manualmente) |
+| `GET /api/v1/users/self/grades`         | Notas / promedio ponderado                                             |
+| `GET /api/v1/courses/:id/announcements` | Feed de avisos                                                         |
 
 ## Archivo relevante
 

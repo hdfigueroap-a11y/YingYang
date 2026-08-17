@@ -17,7 +17,12 @@ import { colors, radius, gradients } from './theme';
 
 const VARIANTS = {
   primary: { gradient: gradients.primary, text: colors.background },
-  secondary: { bg: colors.accentSoft, bgPressed: 'rgba(0, 229, 255, 0.2)', text: colors.accent, border: 'rgba(0, 229, 255, 0.35)' },
+  secondary: {
+    bg: colors.accentSoft,
+    bgPressed: 'rgba(0, 229, 255, 0.2)',
+    text: colors.accent,
+    border: 'rgba(0, 229, 255, 0.35)',
+  },
   neutral: { bg: colors.fill, bgPressed: colors.separator, text: colors.text },
   plain: { bg: 'transparent', bgPressed: 'transparent', text: colors.textSecondary },
 };

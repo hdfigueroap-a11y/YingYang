@@ -58,7 +58,11 @@ export default function AddClassModal({ visible, onCancel, onSave }) {
       <KeyboardAvoidingView style={styles.overlay} behavior="padding">
         <View style={styles.modalContent}>
           <View style={styles.handle} />
-          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.modalScroll}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.modalScroll}
+          >
             <Text style={styles.modalTitle}>Nueva clase</Text>
 
             <Text style={styles.fieldLabel}>Nombre</Text>
@@ -115,7 +119,13 @@ export default function AddClassModal({ visible, onCancel, onSave }) {
 
           <View style={styles.modalActions}>
             <AppButton title="Cancelar" onPress={onCancel} variant="neutral" size="large" style={styles.actionButton} />
-            <AppButton title="Guardar" onPress={handleSave} variant="primary" size="large" style={styles.actionButton} />
+            <AppButton
+              title="Guardar"
+              onPress={handleSave}
+              variant="primary"
+              size="large"
+              style={styles.actionButton}
+            />
           </View>
         </View>
       </KeyboardAvoidingView>

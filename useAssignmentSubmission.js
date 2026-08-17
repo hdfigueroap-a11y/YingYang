@@ -18,10 +18,7 @@ export function useAssignmentSubmission(onSubmitted) {
     const canFile = types.includes('online_upload');
 
     if (!canText && !canUrl && !canFile) {
-      Alert.alert(
-        'Entrega no soportada',
-        'Esta tarea requiere un tipo de entrega que la app no soporta todavía.'
-      );
+      Alert.alert('Entrega no soportada', 'Esta tarea requiere un tipo de entrega que la app no soporta todavía.');
       return;
     }
 
@@ -31,11 +28,7 @@ export function useAssignmentSubmission(onSubmitted) {
     if (canText) options.push({ text: 'Por texto', onPress: () => promptSubmission(assignment, 'text') });
     options.push({ text: 'Cancelar', style: 'cancel' });
 
-    Alert.alert(
-      'Tipo de entrega',
-      `¿Cómo quieres entregar "${assignment?.name ?? 'esta tarea'}"?`,
-      options
-    );
+    Alert.alert('Tipo de entrega', `¿Cómo quieres entregar "${assignment?.name ?? 'esta tarea'}"?`, options);
   }
 
   function promptSubmission(assignment, kind) {

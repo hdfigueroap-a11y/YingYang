@@ -144,7 +144,7 @@ Eso no bastó — el usuario mandó una captura mostrando "Canvas Dashboard"
 solapado con la hora del sistema. Causa real: `DrawerContentScrollView` (de
 `@react-navigation/drawer`) ya calcula su propio `paddingTop` sumando
 `insets.top`, pero nuestro `contentContainerStyle` (`styles.drawerContent`,
-con `paddingTop: spacing.sm`) se mezcla en un array de estilos *después* del
+con `paddingTop: spacing.sm`) se mezcla en un array de estilos _después_ del
 suyo — la clave repetida se queda con el último valor, así que nuestros 8px
 pisaban por completo su cálculo del notch/isla dinámica. Se quitó el
 `paddingTop` de `drawerContent` en `App.js` (queda solo `{ flex: 1 }`) para

@@ -38,7 +38,15 @@ const Drawer = createDrawerNavigator();
 
 // Íconos simples por texto (sin librería de íconos) y un color de identidad
 // por sección — cada una conserva el acento que ya tenía como pestaña.
-const SCREEN_ICONS = { Hoy: '🌤️', Tareas: '📝', Cursos: '📚', Horario: '🎓', Calendario: '📅', Finanzas: '💰', Ajustes: '⚙️' };
+const SCREEN_ICONS = {
+  Hoy: '🌤️',
+  Tareas: '📝',
+  Cursos: '📚',
+  Horario: '🎓',
+  Calendario: '📅',
+  Finanzas: '💰',
+  Ajustes: '⚙️',
+};
 const SCREEN_COLORS = {
   Hoy: '#0891A6',
   Tareas: colors.accent,
@@ -120,33 +128,33 @@ export default function App() {
           <NavigationContainer>
             <StatusBar style="light" />
             <Drawer.Navigator
-            drawerContent={(props) => <CustomDrawerContent {...props} onLogout={handleLogout} />}
-            screenOptions={({ route }) => ({
-              headerStyle: { backgroundColor: colors.surface },
-              headerTintColor: colors.text,
-              headerTitleStyle: { fontWeight: '700' },
-              headerShadowVisible: false,
-              drawerStyle: { backgroundColor: colors.surface, width: 260 },
-              drawerActiveBackgroundColor: SCREEN_COLORS[route.name],
-              drawerActiveTintColor: colors.background,
-              drawerInactiveTintColor: colors.textSecondary,
-              drawerLabelStyle: { fontSize: 14, fontWeight: '600' },
-              drawerIcon: ({ focused }) => (
-                <Text style={{ fontSize: 18, opacity: focused ? 1 : 0.6 }}>{SCREEN_ICONS[route.name]}</Text>
-              ),
-            })}
-          >
-            <Drawer.Screen name="Hoy" component={TodayScreen} />
-            <Drawer.Screen name="Tareas" component={TasksScreen} />
-            <Drawer.Screen name="Cursos" component={CoursesScreen} />
-            <Drawer.Screen name="Horario" component={ScheduleScreen} />
-            <Drawer.Screen name="Calendario" component={CalendarScreen} />
-            <Drawer.Screen name="Finanzas" component={FinanceScreen} />
-            <Drawer.Screen name="Ajustes" component={SettingsScreen} />
-          </Drawer.Navigator>
-        </NavigationContainer>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+              drawerContent={(props) => <CustomDrawerContent {...props} onLogout={handleLogout} />}
+              screenOptions={({ route }) => ({
+                headerStyle: { backgroundColor: colors.surface },
+                headerTintColor: colors.text,
+                headerTitleStyle: { fontWeight: '700' },
+                headerShadowVisible: false,
+                drawerStyle: { backgroundColor: colors.surface, width: 260 },
+                drawerActiveBackgroundColor: SCREEN_COLORS[route.name],
+                drawerActiveTintColor: colors.background,
+                drawerInactiveTintColor: colors.textSecondary,
+                drawerLabelStyle: { fontSize: 14, fontWeight: '600' },
+                drawerIcon: ({ focused }) => (
+                  <Text style={{ fontSize: 18, opacity: focused ? 1 : 0.6 }}>{SCREEN_ICONS[route.name]}</Text>
+                ),
+              })}
+            >
+              <Drawer.Screen name="Hoy" component={TodayScreen} />
+              <Drawer.Screen name="Tareas" component={TasksScreen} />
+              <Drawer.Screen name="Cursos" component={CoursesScreen} />
+              <Drawer.Screen name="Horario" component={ScheduleScreen} />
+              <Drawer.Screen name="Calendario" component={CalendarScreen} />
+              <Drawer.Screen name="Finanzas" component={FinanceScreen} />
+              <Drawer.Screen name="Ajustes" component={SettingsScreen} />
+            </Drawer.Navigator>
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
     </ErrorBoundary>
   );
 }

@@ -174,7 +174,9 @@ export default function TodayScreen() {
                       )}
                       <Text style={styles.cardDueUrgent}>Vence: {new Date(assignment.due_at).toLocaleString()}</Text>
                       <AppButton
-                        title={scheduler.scheduling === assignment.id ? 'Programando...' : 'Programar bloque de trabajo'}
+                        title={
+                          scheduler.scheduling === assignment.id ? 'Programando...' : 'Programar bloque de trabajo'
+                        }
                         onPress={() => scheduler.scheduleWorkBlock(assignment)}
                         disabled={Boolean(scheduler.scheduling)}
                         loading={scheduler.scheduling === assignment.id}

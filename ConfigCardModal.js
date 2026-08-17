@@ -76,7 +76,13 @@ export default function ConfigCardModal({ visible, card, onCancel, onSave }) {
           </ScrollView>
           <View style={styles.modalActions}>
             <AppButton title="Cancelar" onPress={onCancel} variant="neutral" size="large" style={styles.actionButton} />
-            <AppButton title="Guardar" onPress={handleSave} variant="primary" size="large" style={styles.actionButton} />
+            <AppButton
+              title="Guardar"
+              onPress={handleSave}
+              variant="primary"
+              size="large"
+              style={styles.actionButton}
+            />
           </View>
         </View>
       </KeyboardAvoidingView>

@@ -106,16 +106,12 @@ export default function CoursesScreen() {
             renderItem={({ item }) => {
               const types = item.submission_types || [];
               const canSubmit =
-                types.includes('online_text_entry') ||
-                types.includes('online_url') ||
-                types.includes('online_upload');
+                types.includes('online_text_entry') || types.includes('online_url') || types.includes('online_upload');
 
               return (
                 <View style={[styles.card, { borderLeftColor: courseColor }]}>
                   <Text style={typography.cardTitle}>{item.name}</Text>
-                  {item.due_at && (
-                    <Text style={styles.cardDue}>Vence: {new Date(item.due_at).toLocaleString()}</Text>
-                  )}
+                  {item.due_at && <Text style={styles.cardDue}>Vence: {new Date(item.due_at).toLocaleString()}</Text>}
                   <View style={styles.actions}>
                     <AppButton
                       title={scheduler.scheduling === item.id ? 'Programando...' : 'Programar bloque de trabajo'}
@@ -163,9 +159,7 @@ export default function CoursesScreen() {
           return (
             <View style={[styles.card, { borderLeftColor: courseColor }]}>
               <Text style={typography.cardTitle}>{item.name}</Text>
-              {item.course_code && (
-                <Text style={[styles.cardCourse, { color: courseColor }]}>{item.course_code}</Text>
-              )}
+              {item.course_code && <Text style={[styles.cardCourse, { color: courseColor }]}>{item.course_code}</Text>}
               <View style={styles.actions}>
                 <AppButton title="Ver tareas" onPress={() => openCourse(item)} />
               </View>

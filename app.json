@@ -12,10 +12,6 @@
         "NSCalendarsUsageDescription": "Canvas Dashboard necesita acceso a tu Calendario para crear tus bloques de sueño, lectura, gimnasio y trabajo en tareas."
       }
     },
-    "plugins": [
-      "expo-sqlite",
-      "expo-secure-store",
-      "expo-notifications"
-    ]
+    "plugins": ["expo-sqlite", "expo-secure-store", "expo-notifications"]
   }
 }

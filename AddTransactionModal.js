@@ -69,7 +69,11 @@ export default function AddTransactionModal({ visible, accounts, categories, sav
       <KeyboardAvoidingView style={styles.overlay} behavior="padding">
         <View style={styles.modalContent}>
           <View style={styles.handle} />
-          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.modalScroll}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.modalScroll}
+          >
             <Text style={styles.modalTitle}>Nuevo movimiento</Text>
 
             <View style={styles.pillRow}>

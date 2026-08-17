@@ -1,6 +1,7 @@
 # Planner — Roadmap del proyecto
 
 ## Fase 1 — MVP de Canvas ✅ Completada
+
 1. Generar Access Token de Canvas
 2. Crear proyecto en Expo
 3. Pantalla de login/token seguro (`expo-secure-store`)
@@ -8,6 +9,7 @@
 5. Verificado funcionando en iPhone físico vía Expo Go (SDK 54)
 
 ## Fase 2 — Calendario ✅ Completada
+
 1. ~~Conectar Google Calendar~~ → ~~Microsoft Graph~~ → **Calendario nativo del
    iPhone** (`expo-calendar`) — ver `calendario.md` para el porqué del cambio
 2. Bloques rápidos: sueño, lectura, gimnasio, trabajo (difícil/fácil)
@@ -24,6 +26,7 @@
    que no hay forma de traerlo automáticamente — ver `docs/decisiones.md`.
 
 ## Fase 3 — Envío de entregas (submissions) ✅ Completada
+
 1. ✅ `POST /courses/:id/assignments/:id/submissions` — texto (`online_text_entry`)
    y URL (`online_url`), desde un botón "Entregar tarea" (`useAssignmentSubmission.js`)
 2. ✅ Entrega por archivo (`online_upload`) — `expo-document-picker` instalado
@@ -33,6 +36,7 @@
    `submitFile()`)
 
 ## Extra — Pantalla Cursos (no estaba en el roadmap original) ✅ Completada
+
 `CoursesScreen.js` conecta `getCourses()` y `getAssignments()` de
 `canvasApi.js`, que existían pero no se usaban desde ninguna pantalla.
 Muestra los cursos activos y, al entrar a uno, todas sus tareas (no solo las
@@ -41,6 +45,7 @@ pendientes del to-do list). Usa los mismos hooks que `TasksScreen.js`
 la lógica de programar bloque / entregar tarea.
 
 ## Extra — Pantalla "Hoy" (no estaba en el roadmap original) ✅ Completada
+
 `TodayScreen.js`, primera sección del menú: resumen del día en un solo
 lugar — tareas urgentes de Canvas, clases de hoy y eventos de hoy del
 Calendario del iPhone — en vez de tener que revisar Tareas/Horario/
@@ -48,6 +53,7 @@ Calendario por separado. Reutiliza `useWorkBlockScheduler.js` para programar
 un bloque directo desde una tarea urgente.
 
 ## Extra — Notificaciones locales (no estaba en el roadmap original) ✅ Completada
+
 `expo-notifications` (instalado con permiso amplio del usuario — "te doy
 todos los permisos que quieras"), 100% local, sin servidor ni Expo push
 token. `notifications.js` programa avisos que se disparan aunque la app
@@ -59,11 +65,13 @@ cada vez que se abre la pantalla correspondiente — si la app no se abre en
 varios días, esos días no generan aviso.
 
 ## Extra — Comparación mes a mes en Finanzas (no estaba en el roadmap original) ✅ Completada
+
 Badge `▲/▼ N% vs. mes pasado` junto a Ingresos y Gastos en `FinanceScreen.js`
 — reusa `getMonthSummary()` con el mes actual y el anterior, sin tablas ni
 dependencias nuevas.
 
 ## Extra — Respaldo/restauración de datos (no estaba en el roadmap original) ✅ Completada
+
 `backup.js` + `SettingsScreen.js` (última sección del menú, "Ajustes").
 Finanzas y Horario solo viven en SQLite local — sin este respaldo, perder o
 resetear el teléfono significa perder ese historial por completo.
@@ -74,12 +82,14 @@ explícita antes, mostrando la fecha del archivo). `expo-file-system`,
 `expo-sharing` y `expo-document-picker` (este último ya estaba instalado).
 
 ## Fase 4 — Automatización (n8n) ✅ Completada
+
 El usuario ya tiene n8n corriendo (self-hosted/cloud, fuera de este repo).
 Workflows en `automation/` (ver `automation/README.md` para instalación):
+
 1. ✅ **Cron diario que jale tareas de Canvas y notifique por email** —
    `automation/canvas-tareas-nuevas.json`
 2. ✅ **Detección de tarea nueva comparando snapshots del `/todo`** — mismo
-   workflow; usa el *workflow static data* de n8n para recordar qué
+   workflow; usa el _workflow static data_ de n8n para recordar qué
    assignment IDs ya se vieron, solo notifica los que no estaban antes
 3. ✅ **Notas/promedio desde Canvas** — `automation/canvas-promedio-notas.json`.
    Es un promedio **simple**, no ponderado por créditos (Canvas no expone esa
@@ -99,17 +109,20 @@ Se descartó Telegram como canal (el usuario no puede usarlo) — los tres
 workflows envían por email vía el nodo SMTP de n8n.
 
 ## Rediseño de navegación — ✅ Completado
+
 Pestañas inferiores → menú lateral (Drawer, ícono ☰ arriba a la izquierda),
 pedido explícito del usuario. Terminó en `@react-navigation/native` +
 `@react-navigation/drawer` **v7** (no v6: su Drawer resultó incompatible de
 raíz con Reanimated 4, que Expo SDK 54 exige — 3 rondas de errores en
 dispositivo antes de migrar, ver `docs/decisiones.md` para el detalle
 completo). Trae `react-native-gesture-handler` + `react-native-reanimated`
-+ `react-native-worklets`, con `babel.config.js` nuevo en la raíz. Se quitó
-`@react-navigation/bottom-tabs`, sin uso desde el cambio a Drawer. El botón
-"Cerrar sesión" se movió al pie del menú.
+
+- `react-native-worklets`, con `babel.config.js` nuevo en la raíz. Se quitó
+  `@react-navigation/bottom-tabs`, sin uso desde el cambio a Drawer. El botón
+  "Cerrar sesión" se movió al pie del menú.
 
 ## Rediseño visual — ✅ Completado
+
 La app pasó de un estilo claro tipo iOS nativo a un diseño oscuro
 "futurista": fondo casi negro con tinte azul-violeta, tarjetas con borde
 sutil y resplandor cian, acentos en degradado cian → violeta vía
@@ -118,6 +131,7 @@ centralizado en `theme.js`/`AppButton.js` — ver `docs/arquitectura.md` y
 `docs/decisiones.md`.
 
 ## Rediseño de paleta de colores — ✅ Completado
+
 El usuario dio libertad para cambiar los colores. La paleta categórica de
 `theme.js` (usada por `colorFromString` para cursos/categorías/eventos) se
 reconstruyó de 10 a 7 tonos, validada con la herramienta de paletas
@@ -129,8 +143,10 @@ naranja suelto de la paleta categórica, mezclando roles). Ver
 `docs/decisiones.md` para el detalle de la validación.
 
 ## Fase 5 — Finanzas personales ✅ Completada (registro manual)
+
 Promovida de "exploración" a fase activa del roadmap, y ya construida por
 completo en su versión manual. Plan por pasos:
+
 1. ✅ **Diseño de datos y almacenamiento** — `expo-sqlite` (instalado con
    confirmación del usuario; se descartó JSON simple vía `AsyncStorage`
    porque el historial de movimientos crece indefinidamente y necesita
@@ -177,6 +193,7 @@ completo en su versión manual. Plan por pasos:
    abierta de bancos.
 
 ## Fase 6 — Otras fuentes (exploración, no decidida)
+
 - **Notion**: como base de datos visible de tareas/estado (tiene API REST pública,
   a diferencia de Obsidian)
 - **Obsidian + Readwise**: notas locales + sincronización de highlights de lectura
@@ -188,6 +205,7 @@ completo en su versión manual. Plan por pasos:
   sugiere horario — distinto de Claude Code, que se usa para desarrollar la app
 
 ## Fase 7 — Calidad de código y resiliencia (revisión de arquitectura 2026-08-16)
+
 Ver `docs/decisiones.md` para el detalle completo de cada hallazgo. Orden
 pensado por impacto/riesgo: primero lo mecánico y de bajo riesgo, después
 lo que requiere decisión o instalación nueva.
@@ -227,7 +245,7 @@ lo que requiere decisión o instalación nueva.
    que el usuario haga commit de su trabajo en curso.
 5. ✅ **Tests unitarios con Jest** sobre la lógica de dinero de
    `financeDb.js` — confirmado por el usuario. `npx expo install jest-expo
-   jest --dev` instaló las versiones alineadas al SDK; `financeDb.test.js`
+jest --dev` instaló las versiones alineadas al SDK; `financeDb.test.js`
    cubre `getInstallmentProgress` (progreso de cuotas) y
    `lastCutoffDate`/`nextDueDate` (corte y próximo pago de tarjeta,
    incluyendo cruce de año), **13 tests, todos en verde**. `expo-sqlite` se
@@ -246,6 +264,7 @@ lo que requiere decisión o instalación nueva.
    resto de la app — `getInstallmentProgress` simplemente nunca se
    actualizó para usarlo. **Corregido** en la misma sesión: ahora usa
    `parseIsoDate`. Ver `docs/decisiones.md`.
+
 6. ✅ **Caché de la última respuesta buena de Canvas** para
    `TasksScreen.js`/`CoursesScreen.js` — `canvasCache.js`, sin dependencias
    nuevas (reusa `expo-file-system`, la misma API que `backup.js`, pero en
@@ -265,6 +284,7 @@ lo que requiere decisión o instalación nueva.
    pantallas/módulos — no ejecutar hasta que eso pase.
 
 ## Decisiones de distribución (no técnicas, pero relevantes)
+
 - App **solo para uso personal**, nunca se publicará en App Store
 - Se descartó pagar la cuenta de Apple Developer ($99/año) solo para evitar la
   reinstalación cada 7 días — se usa Expo Go en modo desarrollo permanente

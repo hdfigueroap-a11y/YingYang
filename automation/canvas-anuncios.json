@@ -18,10 +18,7 @@
       "name": "Cada día 9:30am",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [
-        240,
-        300
-      ]
+      "position": [240, 300]
     },
     {
       "parameters": {
@@ -41,10 +38,7 @@
       "name": "Configuración",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [
-        460,
-        300
-      ]
+      "position": [460, 300]
     },
     {
       "parameters": {
@@ -57,10 +51,7 @@
       "name": "Actividad reciente",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        680,
-        300
-      ],
+      "position": [680, 300],
       "credentials": {
         "httpHeaderAuth": {
           "id": "REEMPLAZAR",
@@ -77,10 +68,7 @@
       "name": "Detectar anuncios nuevos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        900,
-        300
-      ]
+      "position": [900, 300]
     },
     {
       "parameters": {
@@ -94,10 +82,7 @@
       "name": "Enviar email",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
-      "position": [
-        1120,
-        300
-      ],
+      "position": [1120, 300],
       "credentials": {
         "smtp": {
           "id": "REEMPLAZAR",

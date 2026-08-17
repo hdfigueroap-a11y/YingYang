@@ -66,14 +66,20 @@ export default function SettingsScreen() {
           <View style={styles.card}>
             <Text style={typography.cardTitle}>Finanzas y Horario</Text>
             <Text style={styles.cardLine}>
-              Estos datos solo viven en este teléfono — si se pierde o se resetea, se pierden con él. Exporta un
-              archivo de respaldo de vez en cuando y guárdalo donde quieras (Archivos, iCloud, correo).
+              Estos datos solo viven en este teléfono — si se pierde o se resetea, se pierden con él. Exporta un archivo
+              de respaldo de vez en cuando y guárdalo donde quieras (Archivos, iCloud, correo).
             </Text>
 
             {exporting ? (
               <ActivityIndicator style={styles.spinner} color={colors.accent} />
             ) : (
-              <AppButton title="Exportar respaldo" onPress={handleExport} variant="primary" size="large" style={styles.button} />
+              <AppButton
+                title="Exportar respaldo"
+                onPress={handleExport}
+                variant="primary"
+                size="large"
+                style={styles.button}
+              />
             )}
 
             {restoring ? (

@@ -3,12 +3,14 @@
 Este archivo se lee automáticamente. Antes de proponer cambios, ten en cuenta:
 
 ## Qué es este proyecto
+
 App personal (Hector) para iPhone en React Native + Expo. Uso 100% individual,
 nunca se va a publicar en App Store. Corre en modo desarrollo vía Expo Go —
 no asumas que hay un development build ni EAS Build configurado a menos que se
 indique lo contrario.
 
 ## Stack fijo — no cambiar sin confirmar con el usuario
+
 - Expo SDK **54** (React Native 0.81.4, React 19.1.0) — ya hubo un incidente de
   incompatibilidad con SDK 51, corregido. No degradar la versión.
 - Node.js LTS (24.x)
@@ -41,12 +43,14 @@ indique lo contrario.
   antes de asumir que el código está mal.
 
 ## Reglas de seguridad de este proyecto
+
 - Nunca hardcodear tokens, API keys, ni client IDs en el código — siempre vía
   `expo-secure-store` o variables de entorno.
 - El usuario ya tuvo un incidente donde compartió un token de Canvas en texto
   plano — sé explícito si detectas algo similar en el código o en un commit.
 
 ## Alcance — qué NO construir aquí
+
 - **No** construir tracking de gimnasio (series, pesos, progreso) — eso vive en la
   app externa Liftoff. Esta app solo crea el bloque de horario.
 - **No** agregar integraciones de Notion/Obsidian todavía — están en
@@ -67,6 +71,7 @@ indique lo contrario.
   almacén cifrado de n8n (ver `automation/README.md`).
 
 ## Convenciones del proyecto
+
 - Comentarios de cabecera en cada archivo explicando su propósito (ver archivos
   existentes como referencia de estilo)
 - Español para nombres de UI visibles al usuario (textos, labels); inglés para
@@ -97,12 +102,14 @@ indique lo contrario.
   elija libremente. No reintroducir ese cálculo.
 
 ## Antes de instalar una librería nueva
+
 Confirma con el usuario primero si es una dependencia grande (cambia
 `package.json` de forma significativa) — prefiere minimizar los `npm install`
 grandes tras la fricción de reinstalaciones repetidas en versiones anteriores del
 proyecto.
 
 ## Estado del roadmap (ver docs/planner.md para detalle completo)
+
 Fases 1, 2 y 3 completas. Fase 2: cualquier tarea (con o sin fecha límite) se
 puede programar como bloque de trabajo en el día/hora que el usuario elija
 (dificultad manual: fácil/difícil), vía el hook `useWorkBlockScheduler.js`

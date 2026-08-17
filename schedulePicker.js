@@ -38,9 +38,7 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import DateTimePicker, {
-  DateTimePickerAndroid,
-} from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { listEventsForDay } from './deviceCalendar';
 import AppButton from './AppButton';
 import { colors, radius, spacing, typography } from './theme';
@@ -183,7 +181,13 @@ export function SchedulePickerModal({ visible, label, initialDate, onConfirm, on
 
           <View style={styles.actions}>
             <AppButton title="Cancelar" onPress={onCancel} variant="neutral" size="large" style={styles.actionButton} />
-            <AppButton title="Confirmar" onPress={handleConfirm} variant="primary" size="large" style={styles.actionButton} />
+            <AppButton
+              title="Confirmar"
+              onPress={handleConfirm}
+              variant="primary"
+              size="large"
+              style={styles.actionButton}
+            />
           </View>
         </View>
       </KeyboardAvoidingView>

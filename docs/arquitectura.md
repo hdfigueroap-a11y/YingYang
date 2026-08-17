@@ -3,6 +3,7 @@
 ## Visión general
 
 App personal para iPhone (no publicada en App Store, uso 100% individual) que centraliza:
+
 1. Tareas de Canvas (LMS estudiantil de UMB/UNAL)
 2. Un calendario de horario (sueño, lectura, gimnasio, trabajo en tareas)
 
@@ -11,24 +12,25 @@ mientras se construye. No requiere Mac.
 
 ## Stack
 
-| Capa | Tecnología |
-|---|---|
-| Framework | Expo SDK 54 (React Native 0.81.4, React 19.1.0) |
-| Lenguaje | JavaScript |
-| Almacenamiento de credenciales | `expo-secure-store` (cifrado en el dispositivo) |
-| Almacenamiento de Finanzas / Horario | `expo-sqlite` (bases de datos locales, sin sincronizar) |
-| Navegación | `@react-navigation` v7 — Drawer (menú lateral ☰, no pestañas inferiores). Requiere `react-native-gesture-handler` + `react-native-reanimated` (con `babel.config.js` propio). v6 no es viable: su Drawer usa una API de Reanimated eliminada en v3+ — ver `docs/decisiones.md` |
-| Calendario | `expo-calendar` → Calendario nativo del iPhone (EventKit) |
-| Notificaciones | `expo-notifications` — locales únicamente, sin Expo push token ni servidor |
-| Respaldo de datos | `expo-file-system` (API nueva `File`/`Paths`) + `expo-sharing` + `expo-document-picker` |
-| Tareas académicas | API REST de Canvas (token de acceso personal) |
-| Control de versiones | Git (local, opcionalmente GitHub privado) |
-| Calidad de código | ESLint 9 (`eslint-config-expo`, flat config) + Prettier (`eslint-config-prettier` desactiva el choque de reglas de estilo) — `npm run lint`, `npm run format` / `format:check`. Tests: Jest (`jest-expo`) — `npm test` / `npm run test:watch`, por ahora solo sobre la lógica de dinero de `financeDb.js` (`financeDb.test.js`) |
-| Asistente de desarrollo | Claude Code, operando directo sobre este repo |
+| Capa                                 | Tecnología                                                                                                                                                                                                                                                                                                                      |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Framework                            | Expo SDK 54 (React Native 0.81.4, React 19.1.0)                                                                                                                                                                                                                                                                                 |
+| Lenguaje                             | JavaScript                                                                                                                                                                                                                                                                                                                      |
+| Almacenamiento de credenciales       | `expo-secure-store` (cifrado en el dispositivo)                                                                                                                                                                                                                                                                                 |
+| Almacenamiento de Finanzas / Horario | `expo-sqlite` (bases de datos locales, sin sincronizar)                                                                                                                                                                                                                                                                         |
+| Navegación                           | `@react-navigation` v7 — Drawer (menú lateral ☰, no pestañas inferiores). Requiere `react-native-gesture-handler` + `react-native-reanimated` (con `babel.config.js` propio). v6 no es viable: su Drawer usa una API de Reanimated eliminada en v3+ — ver `docs/decisiones.md`                                                 |
+| Calendario                           | `expo-calendar` → Calendario nativo del iPhone (EventKit)                                                                                                                                                                                                                                                                       |
+| Notificaciones                       | `expo-notifications` — locales únicamente, sin Expo push token ni servidor                                                                                                                                                                                                                                                      |
+| Respaldo de datos                    | `expo-file-system` (API nueva `File`/`Paths`) + `expo-sharing` + `expo-document-picker`                                                                                                                                                                                                                                         |
+| Tareas académicas                    | API REST de Canvas (token de acceso personal)                                                                                                                                                                                                                                                                                   |
+| Control de versiones                 | Git (local, opcionalmente GitHub privado)                                                                                                                                                                                                                                                                                       |
+| Calidad de código                    | ESLint 9 (`eslint-config-expo`, flat config) + Prettier (`eslint-config-prettier` desactiva el choque de reglas de estilo) — `npm run lint`, `npm run format` / `format:check`. Tests: Jest (`jest-expo`) — `npm test` / `npm run test:watch`, por ahora solo sobre la lógica de dinero de `financeDb.js` (`financeDb.test.js`) |
+| Asistente de desarrollo              | Claude Code, operando directo sobre este repo                                                                                                                                                                                                                                                                                   |
 
 ## Módulos de la app
 
 ### Utilidades compartidas
+
 - `formatters.js` — funciones de fecha/hora/dinero (`pad2`, `isoDate`,
   `parseIsoDate`, `timeToHHMM`, `hhmmToDate`, `formatTimeLabel`,
   `nextDateForWeekday`, `combineDateAndTime`, `monthKey`,
@@ -47,6 +49,7 @@ mientras se construye. No requiere Mac.
   montar el árbol.
 
 ### 0. Hoy
+
 - `notifications.js` — notificaciones **locales** (`expo-notifications`), sin
   Expo push token ni servidor: `scheduleReminder(id, {title, body, date})`
   programa (o reemplaza, si el id ya existía) un aviso para una fecha
@@ -68,11 +71,12 @@ mientras se construye. No requiere Mac.
   bloquear el resto de la pantalla.
 
 ### 1. Tareas (Canvas)
+
 - `LoginScreen.js` — formulario para guardar token + URL de institución
 - `canvasApi.js` — wrapper de fetch con el token, centraliza todas las llamadas
-- `TasksScreen.js` — lista las tareas *pendientes* (`/users/self/todo`)
+- `TasksScreen.js` — lista las tareas _pendientes_ (`/users/self/todo`)
 - `CoursesScreen.js` — lista los cursos activos (`/courses`) y, al entrar a uno,
-  *todas* sus tareas (`/courses/:id/assignments`), no solo las pendientes —
+  _todas_ sus tareas (`/courses/:id/assignments`), no solo las pendientes —
   complementa a `TasksScreen.js`
 - `useWorkBlockScheduler.js` — hook: programa una tarea como bloque de trabajo
   en el Calendario (dificultad manual → duración; día/hora libres). Compartido
@@ -86,6 +90,7 @@ mientras se construye. No requiere Mac.
 - Ver `canvas-api.md` para el detalle de ambas reglas
 
 ### 2. Calendario (nativo del iPhone)
+
 - `deviceCalendar.js` — wrapper de `expo-calendar`: permisos, crear/listar eventos
 - `schedulePicker.js` — selector de fecha/hora reutilizable (Android nativo /
   modal iOS), usado por `useWorkBlockScheduler.js` y por `CalendarScreen.js`
@@ -93,6 +98,7 @@ mientras se construye. No requiere Mac.
   y lista de próximos eventos
 
 ### 3. Horario de clases
+
 - `scheduleDb.js` — capa de datos SQLite, separada de `financeDb.js` (dominio
   distinto). Tabla `classes`: nombre, día de la semana (1=lunes..6=sábado,
   misma numeración que `Date.getDay()`), hora de inicio/fin ('HH:MM'), lugar
@@ -108,6 +114,7 @@ mientras se construye. No requiere Mac.
   archivo que la pantalla.
 
 ### 4. Finanzas (Fase 5, completa en su versión manual)
+
 - `financeDb.js` — capa de datos SQLite (`expo-sqlite`), 100% local, sin
   ningún servicio externo ni credencial (no se integra con ningún banco —
   ver `docs/decisiones.md`). Esquema: `accounts`, `categories`
@@ -141,6 +148,7 @@ mientras se construye. No requiere Mac.
   separado.
 
 ### 5. Navegación
+
 - `App.js` — decide entre LoginScreen (si no hay token de Canvas) o el menú
   lateral (Drawer, ícono ☰ arriba a la izquierda) con Hoy/Tareas/Cursos/
   Horario/Calendario/Finanzas/Ajustes. `CustomDrawerContent` agrega el botón
@@ -152,6 +160,7 @@ mientras se construye. No requiere Mac.
   `SafeAreaProvider`.
 
 ### 6. Diseño visual
+
 - `theme.js` — paleta de colores, radios, espaciados y tipografía compartidos
   (diseño oscuro "futurista": fondo casi negro con tinte azul-violeta,
   tarjetas con borde sutil y resplandor cian, acentos en degradado
@@ -179,6 +188,7 @@ mientras se construye. No requiere Mac.
   consistente
 
 ### 7. Ajustes
+
 - `backup.js` — respaldo/restauración de Finanzas y Horario (las únicas
   bases de datos que solo viven en el dispositivo). `exportBackup()` junta
   todo (`financeDb.js` + `scheduleDb.js`) en un JSON, lo escribe con la API
@@ -201,7 +211,7 @@ mientras se construye. No requiere Mac.
 ## Fuera del alcance de esta app (decisión explícita)
 
 - **Gimnasio (logging de entrenos, progreso, pesos/reps):** se usa la app **Liftoff**
-  en paralelo. Esta app solo crea el *bloque de horario* en el calendario, no
+  en paralelo. Esta app solo crea el _bloque de horario_ en el calendario, no
   reemplaza a Liftoff — Liftoff no tiene API pública, no es integrable.
 - **Notion / Obsidian / Readwise / Hermes Agent:** evaluados como posibles
   piezas de automatización futura, no implementados todavía. Ver `planner.md`.
