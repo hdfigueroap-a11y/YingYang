@@ -77,8 +77,8 @@ export default function TasksScreen() {
           !error && (
             <View style={styles.empty}>
               <Ionicons name="checkmark-done-circle-outline" size={48} color={colors.success} />
-              <Text style={styles.emptyTitle}>No tienes tareas pendientes</Text>
-              <Text style={styles.emptySubtitle}>Disfruta tu tiempo libre</Text>
+              <Text style={typography.emptyTitle}>No tienes tareas pendientes</Text>
+              <Text style={typography.emptySubtitle}>Disfruta tu tiempo libre</Text>
             </View>
           )
         }
@@ -141,8 +141,6 @@ const styles = StyleSheet.create({
   error: { color: colors.danger, paddingHorizontal: spacing.lg, marginBottom: spacing.sm },
   listContent: { padding: spacing.lg, gap: spacing.md },
   empty: { alignItems: 'center', paddingTop: 64, gap: spacing.sm },
-  emptyTitle: { fontSize: 17, fontWeight: '600', color: colors.text },
-  emptySubtitle: { fontSize: 14, color: colors.textSecondary },
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.card,
@@ -151,7 +149,7 @@ const styles = StyleSheet.create({
     ...cardShadow,
   },
   cardCourse: { fontSize: 13, fontWeight: '600', marginTop: 3 },
-  cardDue: { fontSize: 13, color: colors.textSecondary, marginTop: spacing.sm },
+  cardDue: { ...typography.cardSubtitle, marginTop: spacing.sm },
   cardDueUrgent: { color: colors.danger, fontWeight: '600' },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md },
 });

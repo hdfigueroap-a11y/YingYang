@@ -156,8 +156,8 @@ export default function TodayScreen() {
         {nothingToday && !error ? (
           <View style={styles.empty}>
             <Ionicons name="partly-sunny-outline" size={48} color={colors.textSecondary} />
-            <Text style={styles.emptyTitle}>Nada urgente hoy</Text>
-            <Text style={styles.emptySubtitle}>Sin tareas urgentes, clases ni eventos</Text>
+            <Text style={typography.emptyTitle}>Nada urgente hoy</Text>
+            <Text style={typography.emptySubtitle}>Sin tareas urgentes, clases ni eventos</Text>
           </View>
         ) : (
           <>
@@ -238,8 +238,6 @@ const styles = StyleSheet.create({
   dateLabel: { fontSize: 20, fontWeight: '700', color: colors.text, letterSpacing: -0.3 },
   error: { color: colors.danger },
   empty: { alignItems: 'center', paddingTop: 64, gap: spacing.sm },
-  emptyTitle: { fontSize: 17, fontWeight: '600', color: colors.text },
-  emptySubtitle: { fontSize: 14, color: colors.textSecondary },
   section: { gap: spacing.sm },
   sectionLabel: { marginBottom: spacing.xs },
   card: {
@@ -250,7 +248,7 @@ const styles = StyleSheet.create({
     ...cardShadow,
   },
   cardCourse: { fontSize: 13, fontWeight: '600', marginTop: 3 },
-  cardLine: { fontSize: 13, color: colors.textSecondary, marginTop: 3 },
+  cardLine: { ...typography.cardSubtitle, marginTop: 3 },
   cardDueUrgent: { fontSize: 13, color: colors.danger, fontWeight: '600', marginTop: spacing.sm },
   cardButton: { marginTop: spacing.md },
 });

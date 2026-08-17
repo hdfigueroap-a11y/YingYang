@@ -81,6 +81,11 @@ export const typography = {
   },
   cardTitle: { fontSize: 15.5, fontWeight: '600', color: colors.text },
   cardSubtitle: { fontSize: 13, color: colors.textSecondary },
+  // Título/subtítulo del estado "vacío" de una pantalla completa (ej. "Nada
+  // urgente hoy", "No tienes tareas pendientes") — antes redefinidos
+  // idénticos, valor por valor, en TodayScreen.js y TasksScreen.js.
+  emptyTitle: { fontSize: 17, fontWeight: '600', color: colors.text },
+  emptySubtitle: { fontSize: 14, color: colors.textSecondary },
 };
 
 // Paleta categórica para darle identidad de color a cursos, categorías,

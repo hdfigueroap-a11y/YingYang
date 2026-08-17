@@ -6,7 +6,7 @@
 // archivos propios sin cambiar ni un valor, solo la ubicación.
 
 import { StyleSheet } from 'react-native';
-import { colors, radius, spacing, cardShadow } from './theme';
+import { colors, radius, spacing, cardShadow, typography } from './theme';
 
 export const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, paddingTop: spacing.md },
@@ -49,7 +49,7 @@ export const styles = StyleSheet.create({
     padding: spacing.lg,
     ...cardShadow,
   },
-  cardLine: { fontSize: 13, color: colors.textSecondary, marginTop: 3 },
+  cardLine: { ...typography.cardSubtitle, marginTop: 3 },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md },
   modalActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
   addButton: { marginHorizontal: spacing.lg, marginBottom: spacing.lg },

@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     ...cardShadow,
   },
-  cardDue: { fontSize: 13, color: colors.textSecondary, marginTop: spacing.xs },
+  cardDue: { ...typography.cardSubtitle, marginTop: spacing.xs },
   cardCourse: { fontSize: 13, fontWeight: '600', marginTop: 2 },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md },
 });
