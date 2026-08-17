@@ -59,3 +59,28 @@ export async function deleteClass(id) {
   const db = await getDb();
   await db.runAsync('DELETE FROM classes WHERE id = ?', id);
 }
+
+// --- Respaldo (backup.js) ---
+
+export async function exportAllClasses() {
+  const db = await getDb();
+  return db.getAllAsync('SELECT * FROM classes');
+}
+
+// Reemplaza TODAS las clases guardadas por las de `classes` — destructivo a
+// propósito, es una restauración de respaldo, no un merge.
+export async function importAllClasses(classes) {
+  const db = await getDb();
+  await db.execAsync('DELETE FROM classes;');
+  for (const c of classes || []) {
+    await db.runAsync(
+      'INSERT INTO classes (id, name, day_of_week, start_time, end_time, location) VALUES (?, ?, ?, ?, ?, ?)',
+      c.id,
+      c.name,
+      c.day_of_week,
+      c.start_time,
+      c.end_time,
+      c.location ?? null
+    );
+  }
+}

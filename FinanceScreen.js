@@ -9,21 +9,15 @@
 // TOTAL en la fecha de la compra (no se prorratea mes a mes) — el resumen
 // del mes refleja el total gastado ese día, y el progreso de cuotas
 // (`getInstallmentProgress`) se muestra aparte, en el detalle de la tarjeta.
+//
+// Los 4 modales de esta pantalla (agregar movimiento, ver compras de
+// tarjeta, configurar tarjeta, presupuesto) viven en sus propios archivos
+// (AddTransactionModal.js, CardPurchasesModal.js, ConfigCardModal.js,
+// BudgetModal.js), compartiendo estilos vía financeStyles.js — antes los
+// cuatro estaban definidos acá mismo, en un archivo de 900+ líneas.
 
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  Modal,
-  Alert,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Pressable,
-} from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { View, Text, ScrollView, Alert, ActivityIndicator, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   initDatabase,
@@ -35,48 +29,57 @@ import {
   deleteTransaction,
   getCreditCards,
   getCardPurchases,
-  getInstallmentProgress,
   setCreditCardDetails,
   setBudget,
   deleteBudget,
   getBudgetsForMonth,
+  getExpenseByCategory,
 } from './financeDb';
+import { hasNotificationPermission, requestNotificationPermission, scheduleReminder } from './notifications';
 import AppButton from './AppButton';
-import { colors, radius, spacing, cardShadow, typography, gradients, colorFromString } from './theme';
+import { colors, cardShadow, typography, gradients, colorFromString } from './theme';
+import { parseIsoDate, monthKey, previousMonthKey, monthLabel, percentChange, formatMoney } from './formatters';
+import { styles } from './financeStyles';
+import AddTransactionModal from './AddTransactionModal';
+import CardPurchasesModal from './CardPurchasesModal';
+import ConfigCardModal from './ConfigCardModal';
+import BudgetModal from './BudgetModal';
 
+// Recordatorio local un día antes del pago de cada tarjeta configurada, a
+// las 9am. Se reprograma cada vez que se abre la pantalla (mismo criterio
+// que los recordatorios de TodayScreen.js — ver notifications.js).
+async function scheduleCardReminders(cards) {
+  const granted = (await hasNotificationPermission()) || (await requestNotificationPermission());
+  if (!granted) return;
 
-function pad2(n) {
-  return String(n).padStart(2, '0');
-}
-function monthKey(date) {
-  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}`;
-}
-function isoDate(date) {
-  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
-}
-// 'YYYY-MM-DD' -> Date local. `new Date('YYYY-MM-DD')` se interpreta como
-// UTC y en Colombia (UTC-5) puede mostrar el día anterior — se arma a mano.
-function parseIsoDate(iso) {
-  const [y, m, d] = iso.split('-').map(Number);
-  return new Date(y, m - 1, d);
-}
-function monthLabel(month) {
-  const [y, m] = month.split('-').map(Number);
-  return new Date(y, m - 1, 1).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' });
-}
-function formatMoney(n) {
-  return (n ?? 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+  await Promise.all(
+    cards
+      .filter((card) => card.nextPaymentDate)
+      .map((card) => {
+        const paymentDate = parseIsoDate(card.nextPaymentDate);
+        const remindAt = new Date(paymentDate);
+        remindAt.setDate(remindAt.getDate() - 1);
+        remindAt.setHours(9, 0, 0, 0);
+        return scheduleReminder(`card-${card.id}-${card.nextPaymentDate}`, {
+          title: `Pago de ${card.name} mañana`,
+          body: `Gastado este corte: ${formatMoney(card.cycleSpent)}`,
+          date: remindAt,
+        });
+      })
+  );
 }
 
 export default function FinanceScreen() {
   const [ready, setReady] = useState(false);
   const [month, setMonth] = useState(monthKey(new Date()));
   const [summary, setSummary] = useState({ income: 0, expense: 0, balance: 0 });
+  const [previousSummary, setPreviousSummary] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [creditCards, setCreditCards] = useState([]);
   const [budgets, setBudgets] = useState([]);
+  const [expenseByCategory, setExpenseByCategory] = useState([]);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -87,16 +90,21 @@ export default function FinanceScreen() {
   const [editingBudget, setEditingBudget] = useState(null);
 
   const loadMonth = useCallback(async (targetMonth) => {
-    const [summaryData, txData, cardsData, budgetsData] = await Promise.all([
+    const [summaryData, previousSummaryData, txData, cardsData, budgetsData, categoryData] = await Promise.all([
       getMonthSummary(targetMonth),
+      getMonthSummary(previousMonthKey(targetMonth)),
       getTransactionsForMonth(targetMonth),
       getCreditCards(),
       getBudgetsForMonth(targetMonth),
+      getExpenseByCategory(targetMonth),
     ]);
     setSummary(summaryData);
+    setPreviousSummary(previousSummaryData);
     setTransactions(txData);
     setCreditCards(cardsData);
+    scheduleCardReminders(cardsData).catch(() => {});
     setBudgets(budgetsData);
+    setExpenseByCategory(categoryData);
   }, []);
 
   useEffect(() => {
@@ -141,6 +149,17 @@ export default function FinanceScreen() {
     setCardPurchases(await getCardPurchases(card.id));
   }
 
+  // La categoría con más gasto del mes marca el 100% de la barra — así se
+  // ve de un vistazo cuál se lleva la mayor parte, no un porcentaje del
+  // total general (que se aplana mucho con muchas categorías chicas).
+  const maxCategoryExpense = expenseByCategory[0]?.total ?? 0;
+
+  // Comparación contra el mes anterior — "favorable" decide el color, no el
+  // signo: más ingresos es bueno (verde), más gastos es malo (ámbar), igual
+  // que en la barra de presupuestos.
+  const incomeChange = percentChange(summary.income, previousSummary?.income);
+  const expenseChange = percentChange(summary.expense, previousSummary?.expense);
+
   if (!ready) {
     return (
       <View style={styles.center}>
@@ -162,16 +181,51 @@ export default function FinanceScreen() {
           <View style={[styles.summaryTile, cardShadow]}>
             <Text style={styles.summaryLabel}>Ingresos</Text>
             <Text style={[styles.summaryValue, { color: colors.success }]}>{formatMoney(summary.income)}</Text>
+            {incomeChange !== null && (
+              <Text style={[styles.summaryDelta, { color: incomeChange >= 0 ? colors.success : colors.textSecondary }]}>
+                {incomeChange >= 0 ? '▲' : '▼'} {Math.abs(incomeChange).toFixed(0)}% vs. mes pasado
+              </Text>
+            )}
           </View>
           <View style={[styles.summaryTile, cardShadow]}>
             <Text style={styles.summaryLabel}>Gastos</Text>
             <Text style={[styles.summaryValue, { color: colors.danger }]}>{formatMoney(summary.expense)}</Text>
+            {expenseChange !== null && (
+              <Text style={[styles.summaryDelta, { color: expenseChange > 0 ? colors.warning : colors.success }]}>
+                {expenseChange >= 0 ? '▲' : '▼'} {Math.abs(expenseChange).toFixed(0)}% vs. mes pasado
+              </Text>
+            )}
           </View>
         </View>
         <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.balanceTile}>
           <Text style={styles.balanceLabel}>Balance del mes</Text>
           <Text style={styles.balanceValue}>{formatMoney(summary.balance)}</Text>
         </LinearGradient>
+
+        {expenseByCategory.length > 0 && (
+          <View style={styles.section}>
+            <Text style={[typography.sectionLabel, styles.sectionLabel]}>Gastos por categoría</Text>
+            {expenseByCategory.map((c) => {
+              const percent = maxCategoryExpense > 0 ? c.total / maxCategoryExpense : 0;
+              return (
+                <View key={c.category_name} style={styles.budgetRow}>
+                  <View style={styles.budgetHeader}>
+                    <Text style={styles.budgetName}>{c.category_name}</Text>
+                    <Text style={styles.budgetAmounts}>{formatMoney(c.total)}</Text>
+                  </View>
+                  <View style={styles.progressTrack}>
+                    <View
+                      style={[
+                        styles.progressFill,
+                        { width: `${percent * 100}%`, backgroundColor: colorFromString(c.category_name) },
+                      ]}
+                    />
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
 
         {creditCards.length > 0 && (
           <View style={styles.section}>
@@ -222,7 +276,7 @@ export default function FinanceScreen() {
             budgets.map((b) => {
               const percent = b.amount > 0 ? Math.min(b.spent / b.amount, 1) : 0;
               const over = b.spent > b.amount;
-              const barColor = over ? colors.danger : percent >= 0.8 ? '#FF9F1C' : colors.accent;
+              const barColor = over ? colors.danger : percent >= 0.8 ? colors.warning : colors.accent;
               return (
                 <Pressable
                   key={b.id}
@@ -338,476 +392,3 @@ export default function FinanceScreen() {
     </View>
   );
 }
-
-// `visible` controla el modal montado en FinanceScreen; el formulario se
-// reinicia cada vez que se abre (mismo patrón que schedulePicker.js).
-function AddTransactionModal({ visible, accounts, categories, saving, onCancel, onSave }) {
-  const [kind, setKind] = useState('gasto');
-  const [amount, setAmount] = useState('');
-  const [note, setNote] = useState('');
-  const [date, setDate] = useState(new Date());
-  const [categoryId, setCategoryId] = useState(null);
-  const [accountId, setAccountId] = useState(null);
-  const [installments, setInstallments] = useState('1');
-
-  useEffect(() => {
-    if (!visible) return;
-    setKind('gasto');
-    setAmount('');
-    setNote('');
-    setDate(new Date());
-    setInstallments('1');
-    const firstCategory = categories.find((c) => c.kind === 'gasto');
-    setCategoryId(firstCategory ? firstCategory.id : null);
-    setAccountId(accounts[0] ? accounts[0].id : null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible]);
-
-  const filteredCategories = categories.filter((c) => c.kind === kind);
-  const selectedAccount = accounts.find((a) => a.id === accountId);
-  const isCredit = selectedAccount?.type === 'credito';
-
-  function handleKindChange(newKind) {
-    setKind(newKind);
-    const first = categories.find((c) => c.kind === newKind);
-    setCategoryId(first ? first.id : null);
-  }
-
-  function handleSave() {
-    const parsedAmount = parseFloat(String(amount).replace(',', '.'));
-    if (!parsedAmount || parsedAmount <= 0) {
-      Alert.alert('Monto inválido', 'Ingresa un monto mayor a cero.');
-      return;
-    }
-    if (!categoryId || !accountId) {
-      Alert.alert('Faltan datos', 'Elige una categoría y una cuenta.');
-      return;
-    }
-    onSave({
-      amount: parsedAmount,
-      date: isoDate(date),
-      note: note.trim(),
-      accountId,
-      categoryId,
-      installments: isCredit ? Math.max(1, parseInt(installments, 10) || 1) : 1,
-    });
-  }
-
-  return (
-    <Modal visible={visible} transparent animationType="slide">
-      <KeyboardAvoidingView style={styles.overlay} behavior="padding">
-        <View style={styles.modalContent}>
-          <View style={styles.handle} />
-          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.modalScroll}>
-            <Text style={styles.modalTitle}>Nuevo movimiento</Text>
-
-            <View style={styles.pillRow}>
-              <AppButton
-                title="Gasto"
-                onPress={() => handleKindChange('gasto')}
-                variant={kind === 'gasto' ? 'primary' : 'neutral'}
-                size="small"
-                style={styles.pill}
-              />
-              <AppButton
-                title="Ingreso"
-                onPress={() => handleKindChange('ingreso')}
-                variant={kind === 'ingreso' ? 'primary' : 'neutral'}
-                size="small"
-                style={styles.pill}
-              />
-            </View>
-
-            <Text style={styles.fieldLabel}>Monto</Text>
-            <TextInput
-              style={styles.input}
-              value={amount}
-              onChangeText={setAmount}
-              keyboardType="decimal-pad"
-              placeholder="0"
-              placeholderTextColor={colors.textTertiary}
-            />
-
-            <Text style={styles.fieldLabel}>Fecha</Text>
-            <DateTimePicker
-              value={date}
-              mode="date"
-              display="inline"
-              themeVariant="dark"
-              onChange={(event, newDate) => newDate && setDate(newDate)}
-              style={styles.datePicker}
-            />
-
-            <Text style={styles.fieldLabel}>Categoría</Text>
-            <View style={styles.pillWrap}>
-              {filteredCategories.map((c) => (
-                <AppButton
-                  key={c.id}
-                  title={c.name}
-                  onPress={() => setCategoryId(c.id)}
-                  variant={categoryId === c.id ? 'primary' : 'neutral'}
-                  size="small"
-                  style={styles.pillWrapItem}
-                />
-              ))}
-            </View>
-
-            <Text style={styles.fieldLabel}>Cuenta</Text>
-            <View style={styles.pillWrap}>
-              {accounts.map((a) => (
-                <AppButton
-                  key={a.id}
-                  title={a.name}
-                  onPress={() => setAccountId(a.id)}
-                  variant={accountId === a.id ? 'primary' : 'neutral'}
-                  size="small"
-                  style={styles.pillWrapItem}
-                />
-              ))}
-            </View>
-
-            {isCredit && (
-              <>
-                <Text style={styles.fieldLabel}>Cuotas</Text>
-                <TextInput
-                  style={styles.input}
-                  value={installments}
-                  onChangeText={setInstallments}
-                  keyboardType="number-pad"
-                  placeholder="1"
-                  placeholderTextColor={colors.textTertiary}
-                />
-              </>
-            )}
-
-            <Text style={styles.fieldLabel}>Nota (opcional)</Text>
-            <TextInput
-              style={styles.input}
-              value={note}
-              onChangeText={setNote}
-              placeholder="Ej. Mercado del mes"
-              placeholderTextColor={colors.textTertiary}
-            />
-          </ScrollView>
-
-          <View style={styles.modalActions}>
-            <AppButton title="Cancelar" onPress={onCancel} variant="neutral" size="large" style={styles.actionButton} />
-            <AppButton
-              title="Guardar"
-              onPress={handleSave}
-              variant="primary"
-              size="large"
-              style={styles.actionButton}
-              loading={saving}
-              disabled={saving}
-            />
-          </View>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
-  );
-}
-
-function CardPurchasesModal({ visible, card, purchases, onClose }) {
-  if (!card) return null;
-  return (
-    <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.overlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.handle} />
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.modalScroll}>
-            <Text style={styles.modalTitle}>Compras — {card.name}</Text>
-            {purchases.length === 0 ? (
-              <Text style={styles.empty}>Sin compras registradas</Text>
-            ) : (
-              purchases.map((p) => {
-                const progress = getInstallmentProgress(p);
-                return (
-                  <View key={p.id} style={styles.txRow}>
-                    <View style={[styles.txDot, { backgroundColor: colorFromString(p.category_name) }]} />
-                    <View style={styles.txInfo}>
-                      <Text style={styles.txTitle}>{p.note || p.category_name}</Text>
-                      <Text style={styles.txSubtitle}>
-                        {parseIsoDate(p.date).toLocaleDateString('es-CO')}
-                        {progress ? ` · cuota ${progress.paid}/${progress.total}` : ''}
-                      </Text>
-                    </View>
-                    <Text style={styles.txAmount}>{formatMoney(p.amount)}</Text>
-                  </View>
-                );
-              })
-            )}
-          </ScrollView>
-          <View style={styles.modalActions}>
-            <AppButton title="Cerrar" onPress={onClose} variant="neutral" size="large" style={styles.actionButton} />
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-}
-
-function ConfigCardModal({ visible, card, onCancel, onSave }) {
-  const [creditLimit, setCreditLimit] = useState('');
-  const [cutoffDay, setCutoffDay] = useState('');
-  const [dueDay, setDueDay] = useState('');
-
-  useEffect(() => {
-    if (!card) return;
-    setCreditLimit(card.credit_limit != null ? String(card.credit_limit) : '');
-    setCutoffDay(card.cutoff_day != null ? String(card.cutoff_day) : '');
-    setDueDay(card.due_day != null ? String(card.due_day) : '');
-  }, [card]);
-
-  if (!card) return null;
-
-  function handleSave() {
-    const cutoff = parseInt(cutoffDay, 10);
-    const due = parseInt(dueDay, 10);
-    if (!cutoff || cutoff < 1 || cutoff > 31 || !due || due < 1 || due > 31) {
-      Alert.alert('Datos inválidos', 'El día de corte y de pago deben ser números entre 1 y 31.');
-      return;
-    }
-    onSave({
-      creditLimit: creditLimit ? parseFloat(String(creditLimit).replace(',', '.')) : null,
-      cutoffDay: cutoff,
-      dueDay: due,
-    });
-  }
-
-  return (
-    <Modal visible={visible} transparent animationType="slide">
-      <KeyboardAvoidingView style={styles.overlay} behavior="padding">
-        <View style={styles.modalContent}>
-          <View style={styles.handle} />
-          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.modalScroll}>
-            <Text style={styles.modalTitle}>Configurar {card.name}</Text>
-
-            <Text style={styles.fieldLabel}>Cupo total</Text>
-            <TextInput
-              style={styles.input}
-              value={creditLimit}
-              onChangeText={setCreditLimit}
-              keyboardType="decimal-pad"
-              placeholder="Ej. 3000000"
-              placeholderTextColor={colors.textTertiary}
-            />
-
-            <Text style={styles.fieldLabel}>Día de corte (1-31)</Text>
-            <TextInput
-              style={styles.input}
-              value={cutoffDay}
-              onChangeText={setCutoffDay}
-              keyboardType="number-pad"
-              placeholder="Ej. 15"
-              placeholderTextColor={colors.textTertiary}
-            />
-
-            <Text style={styles.fieldLabel}>Día de pago (1-31)</Text>
-            <TextInput
-              style={styles.input}
-              value={dueDay}
-              onChangeText={setDueDay}
-              keyboardType="number-pad"
-              placeholder="Ej. 5"
-              placeholderTextColor={colors.textTertiary}
-            />
-          </ScrollView>
-          <View style={styles.modalActions}>
-            <AppButton title="Cancelar" onPress={onCancel} variant="neutral" size="large" style={styles.actionButton} />
-            <AppButton title="Guardar" onPress={handleSave} variant="primary" size="large" style={styles.actionButton} />
-          </View>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
-  );
-}
-
-// `existingCategoryIds` oculta de la lista las categorías que ya tienen
-// presupuesto este mes al CREAR uno nuevo (evita duplicados confusos); al
-// EDITAR (`editingBudget` truthy) se muestran todas — es la misma categoría
-// que ya se está editando.
-function BudgetModal({ visible, categories, editingBudget, existingCategoryIds, onCancel, onSave, onDelete }) {
-  const [categoryId, setCategoryId] = useState(null);
-  const [amount, setAmount] = useState('');
-
-  useEffect(() => {
-    if (!visible) return;
-    if (editingBudget) {
-      setCategoryId(editingBudget.category_id);
-      setAmount(String(editingBudget.amount));
-    } else {
-      setCategoryId(null);
-      setAmount('');
-    }
-  }, [visible, editingBudget]);
-
-  const gastoCategories = categories.filter((c) => c.kind === 'gasto');
-  const availableCategories = editingBudget
-    ? gastoCategories
-    : gastoCategories.filter((c) => !existingCategoryIds.includes(c.id));
-
-  function handleSave() {
-    const parsedAmount = parseFloat(String(amount).replace(',', '.'));
-    if (!parsedAmount || parsedAmount <= 0) {
-      Alert.alert('Monto inválido', 'Ingresa un monto mayor a cero.');
-      return;
-    }
-    if (!categoryId) {
-      Alert.alert('Falta la categoría', 'Elige una categoría.');
-      return;
-    }
-    onSave(categoryId, parsedAmount);
-  }
-
-  function handleDelete() {
-    Alert.alert('Eliminar presupuesto', `¿Eliminar el presupuesto de "${editingBudget.category_name}"?`, [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Eliminar', style: 'destructive', onPress: onDelete },
-    ]);
-  }
-
-  return (
-    <Modal visible={visible} transparent animationType="slide">
-      <KeyboardAvoidingView style={styles.overlay} behavior="padding">
-        <View style={styles.modalContent}>
-          <View style={styles.handle} />
-          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.modalScroll}>
-            <Text style={styles.modalTitle}>{editingBudget ? 'Editar presupuesto' : 'Nuevo presupuesto'}</Text>
-
-            <Text style={styles.fieldLabel}>Categoría</Text>
-            {availableCategories.length === 0 ? (
-              <Text style={styles.empty}>Ya tienes presupuesto en todas las categorías de gasto</Text>
-            ) : (
-              <View style={styles.pillWrap}>
-                {availableCategories.map((c) => (
-                  <AppButton
-                    key={c.id}
-                    title={c.name}
-                    onPress={() => setCategoryId(c.id)}
-                    variant={categoryId === c.id ? 'primary' : 'neutral'}
-                    size="small"
-                  />
-                ))}
-              </View>
-            )}
-
-            <Text style={styles.fieldLabel}>Monto mensual</Text>
-            <TextInput
-              style={styles.input}
-              value={amount}
-              onChangeText={setAmount}
-              keyboardType="decimal-pad"
-              placeholder="0"
-              placeholderTextColor={colors.textTertiary}
-            />
-
-            {editingBudget && (
-              <AppButton title="Eliminar presupuesto" onPress={handleDelete} variant="plain" style={styles.deleteLink} />
-            )}
-          </ScrollView>
-
-          <View style={styles.modalActions}>
-            <AppButton title="Cancelar" onPress={onCancel} variant="neutral" size="large" style={styles.actionButton} />
-            <AppButton title="Guardar" onPress={handleSave} variant="primary" size="large" style={styles.actionButton} />
-          </View>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, paddingTop: spacing.md },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
-  // El ScrollView necesita su propio flex:1 además de contentContainerStyle
-  // — sin esto no se dimensiona bien dentro de `container` y empuja el
-  // botón "+ Agregar movimiento" (que va DESPUÉS del ScrollView, fijo, no
-  // dentro de él) fuera del área visible de la pantalla.
-  scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: spacing.lg, paddingBottom: spacing.lg, gap: spacing.lg },
-  monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.lg },
-  monthLabel: { fontSize: 16, fontWeight: '600', color: colors.text, textTransform: 'capitalize', minWidth: 150, textAlign: 'center' },
-  summaryRow: { flexDirection: 'row', gap: spacing.md },
-  summaryTile: { flex: 1, backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.lg },
-  summaryLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 },
-  summaryValue: { fontSize: 17, fontWeight: '700', marginTop: 4 },
-  balanceTile: { borderRadius: radius.card, padding: spacing.lg },
-  balanceLabel: { fontSize: 12, fontWeight: '600', color: colors.background, textTransform: 'uppercase', letterSpacing: 0.5, opacity: 0.7 },
-  balanceValue: { fontSize: 24, fontWeight: '700', color: colors.background, marginTop: 4 },
-  section: { gap: spacing.sm },
-  sectionLabel: { marginBottom: spacing.xs },
-  sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  budgetRow: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.card,
-    padding: spacing.md,
-    ...cardShadow,
-  },
-  budgetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  budgetName: { fontSize: 14.5, fontWeight: '600', color: colors.text },
-  budgetAmounts: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
-  progressTrack: { height: 8, borderRadius: 4, backgroundColor: colors.fill, overflow: 'hidden', marginTop: spacing.xs },
-  progressFill: { height: '100%', borderRadius: 4 },
-  deleteLink: { alignSelf: 'center', marginTop: spacing.sm },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.card,
-    borderLeftWidth: 4,
-    padding: spacing.lg,
-    ...cardShadow,
-  },
-  cardLine: { fontSize: 13, color: colors.textSecondary, marginTop: 3 },
-  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md },
-  modalActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
-  addButton: { marginHorizontal: spacing.lg, marginBottom: spacing.lg },
-  empty: { color: colors.textSecondary, textAlign: 'center', paddingVertical: spacing.lg },
-  txRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    backgroundColor: colors.surface,
-    borderRadius: radius.card,
-    padding: spacing.md,
-    ...cardShadow,
-  },
-  txDot: { width: 8, height: 8, borderRadius: 4 },
-  txInfo: { flex: 1 },
-  txTitle: { fontSize: 14.5, fontWeight: '500', color: colors.text },
-  txSubtitle: { fontSize: 12.5, color: colors.textSecondary, marginTop: 2 },
-  txAmount: { fontSize: 14.5, fontWeight: '700' },
-  overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.65)' },
-  modalContent: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: radius.sheet,
-    borderTopRightRadius: radius.sheet,
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: colors.separator,
-    paddingHorizontal: spacing.lg,
-    maxHeight: '88%',
-  },
-  handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: colors.separator, alignSelf: 'center', marginTop: spacing.sm, marginBottom: spacing.xs },
-  modalScroll: { paddingBottom: spacing.lg, gap: spacing.xs },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: colors.text, marginBottom: spacing.md, letterSpacing: -0.3 },
-  pillRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
-  pill: { flex: 1 },
-  fieldLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.4, marginTop: spacing.md, marginBottom: spacing.xs },
-  input: {
-    borderWidth: 1.5,
-    borderColor: colors.fill,
-    borderRadius: radius.input,
-    padding: 12,
-    fontSize: 16,
-    color: colors.text,
-    backgroundColor: colors.surface,
-  },
-  // El calendario "inline" tiene un tamaño de dibujo nativo fijo — no se
-  // estira aunque el marco sea más ancho, así que se centra en vez de
-  // forzarle un ancho (ver el comentario largo en schedulePicker.js).
-  datePicker: { alignSelf: 'center' },
-  pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, justifyContent: 'center' },
-  pillWrapItem: {},
-  actionButton: { flex: 1 },
-});

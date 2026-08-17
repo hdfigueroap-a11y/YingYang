@@ -4,7 +4,7 @@
     "slug": "canvas-dashboard",
     "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "ios": {
       "bundleIdentifier": "com.tuusuario.canvasdashboard",
       "supportsTablet": false,

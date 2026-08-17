@@ -12,16 +12,19 @@ import {
   listUpcomingEvents,
 } from './deviceCalendar';
 import AppButton from './AppButton';
-import { colors, radius, spacing, cardShadow, typography, colorFromString } from './theme';
+import { colors, radius, spacing, cardShadow, typography, colorFromString, palette } from './theme';
 
 // Plantillas rápidas para los bloques que definimos: sueño, lectura, gym, trabajo.
-// Cada uno con su propio color e ícono para diferenciarlos de un vistazo.
+// Cada uno con su propio color e ícono para diferenciarlos de un vistazo,
+// tomado de `palette` (theme.js) en vez de repetir el hex a mano. "Trabajo"
+// usa colors.danger/colors.accent (no la paleta categórica) porque ahí el
+// color SÍ es semántico — difícil=urgente, fácil=acción por defecto.
 const QUICK_BLOCKS = [
-  { title: 'Sueño', durationMin: 480, icon: '😴', color: '#7B2FF7' }, // 8h
-  { title: 'Lectura', durationMin: 60, icon: '📖', color: '#FF9F1C' },
-  { title: 'Gimnasio', durationMin: 60, icon: '🏋️', color: '#39FF88' },
-  { title: 'Trabajo — tarea difícil', durationMin: 120, icon: '🔴', color: '#FF3B5C' },
-  { title: 'Trabajo — tarea fácil', durationMin: 60, icon: '🔵', color: '#00E5FF' },
+  { title: 'Sueño', durationMin: 480, icon: '😴', color: palette[5] }, // violeta, 8h
+  { title: 'Lectura', durationMin: 60, icon: '📖', color: palette[1] }, // naranja quemado
+  { title: 'Gimnasio', durationMin: 60, icon: '🏋️', color: palette[2] }, // verde
+  { title: 'Trabajo — tarea difícil', durationMin: 120, icon: '🔴', color: colors.danger },
+  { title: 'Trabajo — tarea fácil', durationMin: 60, icon: '🔵', color: colors.accent },
 ];
 
 function formatDuration(durationMin) {

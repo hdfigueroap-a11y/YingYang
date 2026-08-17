@@ -53,6 +53,7 @@ export default function AppButton({
         disabled={isDisabled}
         style={({ pressed }) => [
           styles.base,
+          styles.gradientRim,
           sizeStyle,
           style,
           isDisabled && styles.disabled,
@@ -99,6 +100,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
+  // Filo claro de 1px sobre el degradado — el botón primario es la única
+  // superficie de acento sólida de la app (las tarjetas son oscuras con
+  // borde cian); sin este realce se ve plano al lado del resplandor de las
+  // tarjetas. Un solo borderColor translúcido en vez de borde por lado
+  // porque RN no soporta gradientes de borde nativos.
+  gradientRim: { borderWidth: 1, borderColor: colors.rimLight },
   default: { paddingVertical: 9, paddingHorizontal: 14 },
   small: { paddingVertical: 7, paddingHorizontal: 14, borderRadius: 8 },
   large: { paddingVertical: 14, paddingHorizontal: 20, borderRadius: radius.button, width: '100%' },
